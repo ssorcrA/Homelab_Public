@@ -1,0 +1,18 @@
+services:
+  panel:
+    image: ghcr.io/pelican/panel:latest
+    container_name: pelican-panel
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8085:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      XDG_DATA_HOME: /pelican-data
+      APP_URL: "https://jeux.lan"
+      BEHIND_PROXY: "true"
+      TRUSTED_PROXIES: "127.0.0.1,172.16.0.0/12"
+      TZ: Europe/Paris
+    volumes:
+      - ./data:/pelican-data
+      - ./logs:/var/www/html/storage/logs

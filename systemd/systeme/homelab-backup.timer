@@ -1,0 +1,9 @@
+[Unit]
+Description=Sauvegarde du homelab le samedi
+
+[Timer]
+OnCalendar=Sat *-*-* 17,19,21:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

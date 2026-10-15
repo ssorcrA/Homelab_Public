@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cadenas de sécurité</title>
+<style>
+:root{
+  --paper:#F5F1EA; --ink:#1E2230; --muted:#5F6573; --line:#E2DBCF; --card:#FFFFFF; --accent:#1E2230; --accent-ink:#F5F1EA;
+  --note:#E6F2EA; --note-line:#1E8E52; --code:#F0EBE2; --focus:#2F55C8;
+  --shadow:0 1px 2px rgba(30,34,48,.06),0 6px 18px rgba(30,34,48,.06);
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"Cascadia Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root{--paper:#15171D; --ink:#ECEDF0; --muted:#A3A8B4; --line:#2A2E38; --card:#1E2129; --accent:#ECEDF0; --accent-ink:#15171D;
+    --note:#17302A; --note-line:#4CC787; --code:#2A2E38; --focus:#9DB8FF; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 22px rgba(0,0,0,.25)}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:1.12rem;line-height:1.65;
+  padding:clamp(1.25rem,4vw,3rem) clamp(1rem,4vw,2rem) 4rem}
+.wrap{max-width:46rem;margin:0 auto}
+a{color:var(--ink);text-underline-offset:.2em;text-decoration-thickness:1.5px}
+a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:6px}
+.wrap > a:first-child{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .95rem;border:1px solid var(--line);border-radius:999px;
+  background:var(--card);font-size:1rem;font-weight:600;text-decoration:none}
+.wrap > a:first-child::before{content:"\2190";font-weight:700}
+.marque{display:flex;align-items:center;gap:.55rem;margin:2rem 0 .7rem;font-size:.92rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.marque svg{width:1.2rem;height:1.2rem;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+h1{font-family:var(--serif);font-weight:600;font-size:clamp(2.2rem,6.5vw,3.4rem);line-height:1.05;letter-spacing:-.02em;margin:0 0 .8rem}
+h2{font-size:1.35rem;line-height:1.25;margin:0 0 .4rem}
+.intro{color:var(--muted);font-size:1.18rem;margin:0 0 1.8rem}
+code{font-family:var(--mono);font-size:.88em;background:var(--code);padding:.1rem .4rem;border-radius:6px;overflow-wrap:anywhere}
+
+/* carte de l'appareil détecté */
+.carte{background:var(--card);border:1px solid var(--line);border-top:6px solid var(--ink);border-radius:20px;padding:1.4rem 1.5rem 1.1rem;margin:0 0 1.6rem;box-shadow:var(--shadow)}
+.carte .pour{color:var(--muted);font-size:.95rem;margin:0 0 .3rem}
+.dl{display:flex;align-items:center;justify-content:center;gap:.7rem;width:100%;background:var(--accent);color:var(--accent-ink);
+  text-decoration:none;font-weight:700;font-size:1.2rem;padding:1rem 1.4rem;border-radius:999px;margin:.8rem 0 .5rem;min-height:3.5rem;text-align:center}
+.dl:hover{filter:brightness(1.2)}
+.dl svg{width:1.45rem;height:1.45rem;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.dl.petit{display:inline-flex;width:auto;font-size:1.02rem;padding:.65rem 1.15rem;min-height:2.8rem;margin:.6rem 0}
+.voir{font-size:.98rem;color:var(--muted);margin:.2rem 0}
+ol{padding-left:0;margin:.8rem 0;list-style:none;counter-reset:etape}
+li{position:relative;margin:.7rem 0;padding-left:2.6rem;counter-increment:etape}
+li::before{content:counter(etape);position:absolute;left:0;top:.1rem;width:1.8rem;height:1.8rem;border-radius:50%;
+  background:var(--code);color:var(--ink);font-weight:700;font-size:.95rem;line-height:1.8rem;text-align:center}
+
+/* liste des appareils */
+details{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:.1rem 1.25rem;margin:.7rem 0;box-shadow:var(--shadow)}
+summary{cursor:pointer;font-weight:700;padding:.85rem 0;font-size:1.1rem;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"";flex:none;width:.6rem;height:.6rem;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);margin:0 .3rem .25rem 0;transition:transform .15s ease}
+details[open] > summary::after{transform:rotate(225deg);margin-bottom:-.2rem}
+details[open] > summary{border-bottom:1px solid var(--line);margin-bottom:.6rem}
+details.autres{background:none;border:0;box-shadow:none;padding:0;margin:1.2rem 0}
+details.autres > summary{font-size:.92rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:.4rem 0}
+details.autres[open] > summary{border-bottom:0;margin-bottom:.2rem}
+details details{margin:.7rem 0}
+details details[open]{padding-bottom:.6rem}
+
+.note{background:var(--note);border-left:4px solid var(--note-line);padding:.9rem 1.2rem;border-radius:0 14px 14px 0;margin:1.4rem 0}
+.note p{margin:0}
+.empreinte{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:1.2rem 1.4rem;margin:1.8rem 0;box-shadow:var(--shadow)}
+.empreinte h2{font-size:1.15rem}
+.empreinte p{margin:.25rem 0}
+.empreinte code{display:block;font-size:.92rem;line-height:1.7;padding:.7rem .9rem;margin:.6rem 0;letter-spacing:.02em;border-radius:10px}
+.mut{color:var(--muted);font-size:.98rem}
+@media (prefers-reduced-motion:reduce){summary::after{transition:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+</svg>
+<div class="wrap">
+  <a href="index.html">Retour à la page d'accueil</a>
+  <p class="marque"><svg aria-hidden="true"><use href="#i-lock"/></svg>Certificat de la maison</p>
+  <h1>Installer le cadenas de sécurité</h1>
+  <p class="intro">Ce petit fichier apprend à ton appareil que les adresses de la maison sont fiables. Sans lui, le navigateur affiche « connexion non sécurisée » sur les adresses en https. On l'installe une seule fois par appareil.</p>
+
+  <!-- Rempli selon l'appareil détecté ; sans JavaScript, toutes les plateformes restent dans la liste. -->
+  <section class="carte" id="carte" hidden aria-live="polite"></section>
+
+  <details class="autres" id="autres" open>
+    <summary id="autres-titre">Choisis ton appareil</summary>
+
+    <details data-p="android">
+      <summary>Téléphone ou tablette Android</summary>
+      <a class="dl petit" href="ca.crt" download="maison-ca.crt"><svg><use href="#i-down"/></svg>Télécharger le certificat</a>
+      <ol>
+        <li>Télécharge le certificat avec le bouton.</li>
+        <li>Ouvre les <strong>Paramètres</strong>, puis <strong>Sécurité et confidentialité</strong> (ou <strong>Sécurité</strong>), puis <strong>Plus de paramètres de sécurité</strong> ou <strong>Chiffrement et identifiants</strong>.</li>
+        <li>Touche <strong>Installer un certificat</strong>, puis <strong>Certificat CA</strong>, et valide l'avertissement (<strong>Installer quand même</strong>).</li>
+        <li>Choisis <strong>maison-ca.crt</strong> dans les téléchargements. Le code de déverrouillage du téléphone peut être demandé.</li>
+      </ol>
+      <p class="mut">Le menu change selon la marque : si tu ne le trouves pas, tape « certificat » dans la recherche des Paramètres.</p>
+    </details>
+
+    <details data-p="ios">
+      <summary>iPhone ou iPad</summary>
+      <a class="dl petit" href="maison-ca.mobileconfig"><svg><use href="#i-down"/></svg>Télécharger le profil</a>
+      <ol>
+        <li>Ouvre cette page avec <strong>Safari</strong>, touche le bouton, puis <strong>Autoriser</strong>.</li>
+        <li><strong>Installer le profil</strong> : ouvre <strong>Réglages</strong>, touche <strong>Profil téléchargé</strong> en haut (ou Réglages &gt; Général &gt; VPN et gestion de l'appareil), puis <strong>Installer</strong> (trois fois) et ton code.</li>
+        <li><strong>Activer la confiance</strong> : <strong>Réglages &gt; Général &gt; Informations &gt; Réglages du certificat</strong>, active l'interrupteur de « <span class="nom-ca">Caddy Local Authority</span> », puis <strong>Continuer</strong>.</li>
+      </ol>
+      <p class="mut">Sans la deuxième étape, le cadenas n'apparaît pas : c'est la plus souvent oubliée.</p>
+    </details>
+
+    <details data-p="windows">
+      <summary>Ordinateur Windows</summary>
+      <a class="dl petit" href="maison-ca.bat" download="maison-ca.bat"><svg><use href="#i-down"/></svg>Télécharger maison-ca.bat</a>
+      <p class="voir"><a href="maison-ca.bat" target="_blank" rel="noopener">Lire le contenu du fichier avant de le lancer</a></p>
+      <ol>
+        <li>Télécharge le fichier. Si le navigateur le signale, choisis <strong>Conserver</strong> : c'est un simple texte que tu peux ouvrir avec le Bloc-notes (clic droit, <strong>Modifier</strong>).</li>
+        <li>Fais un <strong>clic droit</strong> dessus, puis <strong>Exécuter en tant qu'administrateur</strong>. Si Windows affiche « Windows a protégé votre ordinateur », clique sur <strong>Informations complémentaires</strong> puis <strong>Exécuter quand même</strong>.</li>
+        <li>Quand la fenêtre affiche « Certificat installé », ferme et rouvre le navigateur.</li>
+      </ol>
+      <p class="mut">Il utilise la commande Windows <code>certutil -addstore Root</code> et installe le certificat pour tout l'ordinateur. Chrome et Edge l'utilisent directement, Firefox aussi dans ses versions récentes.</p>
+    </details>
+
+    <details data-p="mac">
+      <summary>Mac</summary>
+      <a class="dl petit" href="maison-ca-mac.sh" download="maison-ca-mac.sh"><svg><use href="#i-down"/></svg>Télécharger maison-ca-mac.sh</a>
+      <p class="voir"><a href="maison-ca-mac.sh" target="_blank" rel="noopener">Lire le contenu du script avant de le lancer</a></p>
+      <ol>
+        <li>Télécharge le script (il arrive dans <strong>Téléchargements</strong>).</li>
+        <li>Ouvre <strong>Terminal</strong> et tape : <code>sudo bash ~/Downloads/maison-ca-mac.sh</code>, puis le mot de passe du Mac.</li>
+        <li>Ferme et rouvre le navigateur.</li>
+      </ol>
+      <p class="mut">Il utilise <code>security add-trusted-cert</code> pour ajouter le certificat au trousseau Système, en confiance « racine ».</p>
+    </details>
+
+    <details data-p="linux">
+      <summary>Ordinateur Linux</summary>
+      <a class="dl petit" href="maison-ca-linux.sh" download="maison-ca-linux.sh"><svg><use href="#i-down"/></svg>Télécharger maison-ca-linux.sh</a>
+      <p class="voir"><a href="maison-ca-linux.sh" target="_blank" rel="noopener">Lire le contenu du script avant de le lancer</a></p>
+      <ol>
+        <li>Télécharge le script.</li>
+        <li>Dans un terminal : <code>sudo sh ~/Téléchargements/maison-ca-linux.sh</code> (ou <code>~/Downloads/…</code>).</li>
+        <li>Il copie le certificat dans <code>/usr/local/share/ca-certificates</code> puis lance <code>update-ca-certificates</code>. Ferme et rouvre le navigateur.</li>
+      </ol>
+      <p class="mut">Firefox et Chrome sous Linux ont parfois leur propre liste : si le cadenas manque, importe <a href="ca.crt" download="maison-ca.crt">maison-ca.crt</a> dans leurs réglages (Certificats, onglet Autorités).</p>
+    </details>
+
+    <details data-p="tv">
+      <summary>Télévision</summary>
+      <p>Beaucoup de télés ne permettent pas d'installer de certificat. Sur la télé, utilise l'adresse en <strong>http</strong> (par exemple <code>http://home.lan</code>) : elle continue de marcher.</p>
+    </details>
+  </details>
+
+  <section class="empreinte" aria-labelledby="t-empreinte">
+    <h2 id="t-empreinte">Empreinte du certificat (SHA-256)</h2>
+    <p class="mut">Pour vérifier que c'est bien celui de la maison : elle doit être identique à celle que montre ton appareil dans le détail du certificat.</p>
+    <code id="sha">chargement…</code>
+    <p class="mut" id="sha-info"></p>
+    <p class="mut"><a href="ca.crt" download="maison-ca.crt">Télécharger le certificat seul (maison-ca.crt)</a></p>
+  </section>
+
+  <div class="note"><p>Ce certificat ne sert qu'aux adresses de la maison. Il ne donne accès à rien d'autre, et il ne voit pas ce que tu fais sur internet.</p></div>
+
+  <p style="color:var(--muted);margin-top:2rem">Un souci ? Préviens Alex.</p>
+</div>
+
+<script>
+(function(){
+  /* https automatique : efface le « non » mémorisé par la page d'accueil (même adresse http),
+     pour que cet appareil reteste le https dès qu'il revient sur l'accueil, certificat installé */
+  try { localStorage.removeItem('https-non'); } catch(e){}
+  var ua = navigator.userAgent || '', p = '';
+  var tactile = (navigator.maxTouchPoints || 0) > 1;
+  if (/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && tactile)) p = 'ios';   /* l'iPad se présente comme un Mac */
+  else if (/Android/.test(ua)) p = 'android';
+  else if (/SMART-TV|SmartTV|Tizen|Web0S|webOS|BRAVIA|AFT|CrKey|HbbTV/i.test(ua)) p = 'tv';
+  else if (/Windows/.test(ua)) p = 'windows';
+  else if (/Macintosh|Mac OS X/.test(ua)) p = 'mac';
+  else if (/Linux|X11|CrOS/.test(ua)) p = 'linux';
+
+  var noms = {android:'Android', ios:'iPhone ou iPad', windows:'Windows', mac:'Mac', linux:'Linux', tv:'Télévision'};
+  var bloc = p && document.querySelector('details[data-p="' + p + '"]');
+  if (bloc) {
+    var carte = document.getElementById('carte');
+    var h = document.createElement('h2');
+    h.textContent = 'Pour ton appareil : ' + noms[p];
+    var pour = document.createElement('p');
+    pour.className = 'pour';
+    pour.textContent = 'Détecté automatiquement. Pas le bon ? Choisis ton appareil dans la liste plus bas.';
+    carte.appendChild(pour);
+    carte.appendChild(h);
+    /* on déplace le contenu de la plateforme dans la carte, avec le bouton en grand */
+    Array.prototype.slice.call(bloc.childNodes).forEach(function(n){
+      if (n.nodeName !== 'SUMMARY') carte.appendChild(n);
+    });
+    var gros = carte.querySelector('a.dl');
+    if (gros) gros.classList.remove('petit');
+    bloc.parentNode.removeChild(bloc);
+    carte.hidden = false;
+    var autres = document.getElementById('autres');
+    autres.open = false;
+    document.getElementById('autres-titre').textContent = 'Autres appareils';
+  }
+
+  fetch('ca-info.json', {cache:'no-store'})
+    .then(function(r){ if (!r.ok) throw 0; return r.json(); })
+    .then(function(j){
+      document.getElementById('sha').textContent = j.sha256;
+      document.getElementById('sha-info').textContent = j.nom + ', valable jusqu\'au ' + new Date(j.expire + 'T12:00:00').toLocaleDateString('fr-FR') + '.';
+      Array.prototype.forEach.call(document.querySelectorAll('.nom-ca'), function(e){ e.textContent = j.nom; });
+    })
+    .catch(function(){ document.getElementById('sha').textContent = 'indisponible (demande à Alex)'; });
+})();
+</script>
+</body>
+</html>

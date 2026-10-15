@@ -1,0 +1,49 @@
+services:
+  nextcloud-db:
+    image: mariadb:11.4
+    container_name: nextcloud-db
+    restart: unless-stopped
+    command: --transaction-isolation=READ-COMMITTED --log-bin=binlog --binlog-format=ROW
+    env_file: .env
+    volumes:
+      - ./db:/var/lib/mysql
+
+  nextcloud-redis:
+    image: redis:7-alpine
+    container_name: nextcloud-redis
+    restart: unless-stopped
+
+  nextcloud:
+    image: nextcloud:apache
+    container_name: nextcloud
+    restart: unless-stopped
+    depends_on:
+      - nextcloud-db
+      - nextcloud-redis
+    ports:
+      - "127.0.0.1:8082:80"
+    env_file: .env
+    environment:
+      MYSQL_HOST: nextcloud-db
+      REDIS_HOST: nextcloud-redis
+      NEXTCLOUD_TRUSTED_DOMAINS: "cloud.lan 192.168.1.199 100.64.0.10"
+      OVERWRITEPROTOCOL: http
+      TRUSTED_PROXIES: "172.16.0.0/12 127.0.0.1"
+      PHP_MEMORY_LIMIT: 1G
+      PHP_UPLOAD_LIMIT: 16G
+      APACHE_DISABLE_REWRITE_IP: "1"
+      TZ: Europe/Paris
+    volumes:
+      - ./html:/var/www/html
+      - ./data:/var/www/html/data
+
+  nextcloud-cron:
+    image: nextcloud:apache
+    container_name: nextcloud-cron
+    restart: unless-stopped
+    depends_on:
+      - nextcloud
+    entrypoint: /cron.sh
+    volumes:
+      - ./html:/var/www/html
+      - ./data:/var/www/html/data

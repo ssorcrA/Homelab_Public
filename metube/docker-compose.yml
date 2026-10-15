@@ -1,0 +1,20 @@
+services:
+  metube:
+    image: ghcr.io/alexta69/metube:latest
+    container_name: metube
+    restart: unless-stopped
+    user: "1000:1000"
+    ports:
+      - "127.0.0.1:8083:8081"
+    environment:
+      DOWNLOAD_DIR: /downloads
+      AUDIO_DOWNLOAD_DIR: /musique
+      STATE_DIR: /state
+      TEMP_DIR: /state/tmp
+      CUSTOM_DIRS: "true"
+      CREATE_CUSTOM_DIRS: "true"
+    volumes:
+      # seulement videos et musique : MeTube n'a plus accès en écriture aux films, séries, etc.
+      - /home/alex/media/videos:/downloads
+      - /home/alex/media/musique:/musique
+      - ./state:/state

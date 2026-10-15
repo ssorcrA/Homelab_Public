@@ -1,0 +1,200 @@
+{
+    local_certs
+    skip_install_trust
+    auto_https disable_redirects
+}
+
+(admin) {
+    basic_auth {
+        admin $2a$14$REMPLACER_PAR_LE_HACHAGE_caddy_hash-password
+    }
+}
+
+# --- Mes appareils : http redirigé vers https (TV, parents et autres restent en http) ---
+# Pour ajouter ou retirer un appareil : modifie seulement la ligne remote_ip ci-dessous,
+# puis recharge avec : bash ~/pack-maison/pages-maison/recharger-caddy-sur.sh
+# Chaque adresse doit être réservée dans la Freebox (bail DHCP fixe), sinon elle change.
+# 192.168.1.198 = tour, 192.168.1.71 = téléphone d'Alex.
+(https_mes_appareils) {
+    @mes_appareils {
+        protocol http
+        remote_ip 192.168.1.198 192.168.1.71
+        not path /ca.crt /ca-info.json /certificat.html /maison-ca*
+        not host exemple.duckdns.org *.exemple.duckdns.org
+    }
+    redir @mes_appareils https://{host}{uri} 302
+}
+
+# --- Https automatique (14/10/2026) : HSTS 1 jour sur les .lan en https (pas cloud.lan, jamais DuckDNS ni l'IP) ---
+# Retour en arrière : bash ~/homelab/caddy/retour-https-auto.sh
+(hsts_lan) {
+    @hsts_lan {
+        protocol https
+        host *.lan
+    }
+    header @hsts_lan Strict-Transport-Security "max-age=86400"
+}
+
+# --- DuckDNS (local) : chaque site répond aussi à X.exemple.duckdns.org (et home à exemple.duckdns.org),
+# en http et en https (tls internal, même autorité que les .lan), sans redirection vers https.
+# Retour en arrière : cp Caddyfile.avant-duckdns Caddyfile (en place) puis recharger-caddy-sur.sh
+
+# --- Famille ---
+home.lan, http://home.lan, home.exemple.duckdns.org, http://home.exemple.duckdns.org, exemple.duckdns.org, http://exemple.duckdns.org {
+    tls internal
+    import https_mes_appareils
+    import hsts_lan
+    # types des fichiers du certificat (page certificat.html)
+    @mobileconfig path *.mobileconfig
+    header @mobileconfig Content-Type application/x-apple-aspen-config
+    @crt path *.crt
+    header @crt Content-Type application/x-x509-ca-cert
+    @scripts path *.bat *.sh
+    header @scripts Content-Type "text/plain; charset=utf-8"
+    handle /api/* {
+        reverse_proxy 127.0.0.1:8095
+    }
+    root * /srv/pages/home
+    file_server
+}
+films.lan, http://films.lan, films.exemple.duckdns.org, http://films.exemple.duckdns.org {
+    tls internal
+    import https_mes_appareils
+    import hsts_lan
+    reverse_proxy 127.0.0.1:8096
+}
+musique.lan, http://musique.lan, musique.exemple.duckdns.org, http://musique.exemple.duckdns.org {
+    tls internal
+    import https_mes_appareils
+    import hsts_lan
+    reverse_proxy 127.0.0.1:4533
+}
+photos.lan, http://photos.lan, photos.exemple.duckdns.org, http://photos.exemple.duckdns.org {
+    tls internal
+    import https_mes_appareils
+    import hsts_lan
+    reverse_proxy 127.0.0.1:2283
+}
+cloud.lan, http://cloud.lan, cloud.exemple.duckdns.org, http://cloud.exemple.duckdns.org {
+    tls internal
+    redir /.well-known/carddav /remote.php/dav 301
+    redir /.well-known/caldav /remote.php/dav 301
+    request_body {
+        max_size 16GB
+    }
+    reverse_proxy 127.0.0.1:8082
+}
+docs.lan, http://docs.lan, docs.exemple.duckdns.org, http://docs.exemple.duckdns.org {
+    tls internal
+    import https_mes_appareils
+    import hsts_lan
+    reverse_proxy 127.0.0.1:8000
+}
+pdf.lan, http://pdf.lan, pdf.exemple.duckdns.org, http://pdf.exemple.duckdns.org {
+    tls internal
+    import https_mes_appareils
+    import hsts_lan
+    reverse_proxy 127.0.0.1:8084
+}
+videos.lan, http://videos.lan, videos.exemple.duckdns.org, http://videos.exemple.duckdns.org {
+    tls internal
+    import https_mes_appareils
+    import hsts_lan
+    reverse_proxy 127.0.0.1:8083
+}
+
+# Gestionnaire de fichiers (File Browser, ~/homelab/fichiers), 14/10/2026. Pas de limite de taille d'envoi.
+fichiers.lan, http://fichiers.lan, fichiers.exemple.duckdns.org, http://fichiers.exemple.duckdns.org {
+    tls internal
+    import https_mes_appareils
+    import hsts_lan
+    reverse_proxy 127.0.0.1:8097
+}
+domotique.lan, http://domotique.lan, domotique.exemple.duckdns.org, http://domotique.exemple.duckdns.org {
+    tls internal
+    import https_mes_appareils
+    import hsts_lan
+    reverse_proxy 127.0.0.1:8123
+}
+
+# --- Admin ---
+admin.lan, http://admin.lan, admin.exemple.duckdns.org, http://admin.exemple.duckdns.org {
+    tls internal
+    import https_mes_appareils
+    import hsts_lan
+    import admin
+    handle /api/* {
+        reverse_proxy 127.0.0.1:8095
+    }
+    root * /srv/pages/admin
+    file_server
+}
+dns.lan, http://dns.lan, dns.exemple.duckdns.org, http://dns.exemple.duckdns.org {
+    tls internal
+    import https_mes_appareils
+    import hsts_lan
+    reverse_proxy 127.0.0.1:3000
+}
+docker.lan, http://docker.lan, docker.exemple.duckdns.org, http://docker.exemple.duckdns.org {
+    tls internal
+    import https_mes_appareils
+    import hsts_lan
+    reverse_proxy https://127.0.0.1:9443 {
+        transport http {
+            tls_insecure_skip_verify
+        }
+    }
+}
+status.lan, http://status.lan, status.exemple.duckdns.org, http://status.exemple.duckdns.org {
+    tls internal
+    import https_mes_appareils
+    import hsts_lan
+    reverse_proxy 127.0.0.1:3001
+}
+monitor.lan, http://monitor.lan, monitor.exemple.duckdns.org, http://monitor.exemple.duckdns.org {
+    tls internal
+    import https_mes_appareils
+    import hsts_lan
+    reverse_proxy 127.0.0.1:8090
+}
+logs.lan, http://logs.lan, logs.exemple.duckdns.org, http://logs.exemple.duckdns.org {
+    tls internal
+    import https_mes_appareils
+    import hsts_lan
+    import admin
+    reverse_proxy 127.0.0.1:8086
+}
+disque.lan, http://disque.lan, disque.exemple.duckdns.org, http://disque.exemple.duckdns.org {
+    tls internal
+    import https_mes_appareils
+    import hsts_lan
+    import admin
+    reverse_proxy 127.0.0.1:8087
+}
+notif.lan, http://notif.lan, notif.exemple.duckdns.org, http://notif.exemple.duckdns.org {
+    tls internal
+    import https_mes_appareils
+    import hsts_lan
+    reverse_proxy 127.0.0.1:8089
+}
+jeux.lan, http://jeux.lan, jeux.exemple.duckdns.org, http://jeux.exemple.duckdns.org {
+    tls internal
+    import https_mes_appareils
+    import hsts_lan
+    reverse_proxy 127.0.0.1:8085
+}
+ia.lan, http://ia.lan, ia.exemple.duckdns.org, http://ia.exemple.duckdns.org {
+    tls internal
+    import https_mes_appareils
+    import hsts_lan
+    reverse_proxy 127.0.0.1:8088
+}
+
+# --- Adresse IP : renvoie vers home.lan (le port 3000 d'AdGuard reste ouvert en secours) ---
+http://192.168.1.199 {
+    redir http://home.lan{uri} 302
+}
+https://192.168.1.199 {
+    tls internal
+    redir https://home.lan{uri} 302
+}

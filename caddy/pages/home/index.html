@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="fr" data-ciel="jour" data-meteo="clair">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Maison</title>
+<meta name="description" content="Les services de la maison : films, musique, photos, documents, météo.">
+<meta name="theme-color" content="#14264d">
+<style>
+@font-face{font-family:"Bricolage Grotesque";font-style:normal;font-weight:200 800;font-display:swap;
+  src:url(../fonts/bricolage-latin.woff2) format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Bricolage Grotesque";font-style:normal;font-weight:200 800;font-display:swap;
+  src:url(../fonts/bricolage-latin-ext.woff2) format("woff2");
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+
+:root{
+  --font:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --ink:#F6F8FF; --soft:rgba(246,248,255,.74); --glass:rgba(9,16,42,.42); --glass-line:rgba(255,255,255,.16);
+  --ease:cubic-bezier(.2,.7,.2,1);
+  --s1:#1a5fb4; --s2:#3b8ad9; --s3:#9bcdf2; --orb:#ffe27a; --orb2:rgba(255,205,90,.42); --nuage:rgba(255,255,255,.78);
+}
+html[data-ciel="aube"]{--s1:#2a2760; --s2:#9a4f86; --s3:#ffb27a; --orb:#fff0d2; --orb2:rgba(255,170,110,.55)}
+html[data-ciel="jour"]{--s1:#175aae; --s2:#3a89d8; --s3:#9fd0f3; --orb:#ffe27a; --orb2:rgba(255,205,90,.42)}
+html[data-ciel="crepuscule"]{--s1:#27205a; --s2:#b04773; --s3:#ff9b5c; --orb:#ffe3c4; --orb2:rgba(255,140,80,.55)}
+html[data-ciel="nuit"]{--s1:#070b25; --s2:#141c4a; --s3:#2a2f68; --orb:#f3f6ff; --orb2:rgba(190,205,255,.3)}
+html[data-meteo="pluie"],html[data-meteo="orage"]{--nuage:rgba(150,160,180,.82)}
+html[data-meteo="nuageux"]{--nuage:rgba(235,240,248,.82)}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;background:#0b1130}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:var(--font);font-weight:420;line-height:1.45;
+  padding:clamp(1.25rem,4vw,3rem) clamp(1rem,4vw,3rem) 0;font-variant-numeric:tabular-nums}
+a{color:inherit}
+.wrap{position:relative;z-index:1;max-width:1120px;margin:0 auto}
+
+/* ---------- le ciel : suit l'heure et la météo réelles ---------- */
+.sky{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.sky-base{position:absolute;inset:0;background:linear-gradient(180deg,var(--s1) 0%,var(--s2) 52%,var(--s3) 100%)}
+html[data-meteo="nuageux"] .sky-base{filter:saturate(.8)}
+html[data-meteo="pluie"] .sky-base,html[data-meteo="orage"] .sky-base{filter:saturate(.45) brightness(.78)}
+html[data-meteo="neige"] .sky-base{filter:saturate(.5) brightness(1.05)}
+html[data-meteo="brume"] .sky-base{filter:saturate(.4) brightness(1.05)}
+.sky::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,8,24,0) 38%,rgba(4,8,24,.55) 100%)}
+.orb{position:absolute;left:calc(var(--ox,70)*1%);top:calc(var(--oy,28)*1%);width:min(26vmin,230px);aspect-ratio:1;transform:translate(-50%,-50%);
+  border-radius:50%;background:radial-gradient(circle,var(--orb) 0 22%,var(--orb2) 27%,transparent 68%);transition:opacity 1s}
+html[data-meteo="pluie"] .orb,html[data-meteo="orage"] .orb,html[data-meteo="neige"] .orb{opacity:.25}
+html[data-meteo="nuageux"] .orb,html[data-meteo="brume"] .orb{opacity:.6}
+.etoiles{position:absolute;inset:0;opacity:0;transition:opacity 1.2s;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cg fill='white'%3E%3Ccircle cx='20' cy='40' r='1.4'/%3E%3Ccircle cx='80' cy='120' r='1'/%3E%3Ccircle cx='140' cy='30' r='1.6'/%3E%3Ccircle cx='200' cy='90' r='1'/%3E%3Ccircle cx='260' cy='20' r='1.3'/%3E%3Ccircle cx='300' cy='150' r='1'/%3E%3Ccircle cx='40' cy='210' r='1.2'/%3E%3Ccircle cx='110' cy='260' r='1'/%3E%3Ccircle cx='180' cy='190' r='1.5'/%3E%3Ccircle cx='240' cy='280' r='1'/%3E%3Ccircle cx='290' cy='230' r='1.2'/%3E%3Ccircle cx='60' cy='300' r='1.1'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:320px 320px;animation:scintille 7s ease-in-out infinite alternate}
+html[data-ciel="nuit"] .etoiles{opacity:.9}
+html[data-ciel="aube"] .etoiles,html[data-ciel="crepuscule"] .etoiles{opacity:.28}
+html[data-meteo="pluie"] .etoiles,html[data-meteo="orage"] .etoiles,html[data-meteo="neige"] .etoiles{opacity:0}
+@keyframes scintille{from{filter:brightness(.6)}to{filter:brightness(1.4)}}
+.nuage{position:absolute;left:-40vw;width:min(46vw,460px);fill:var(--nuage);opacity:0;transition:opacity 1.2s}
+.n1{top:7%;animation:derive 150s linear infinite}
+.n2{top:20%;width:min(34vw,330px);animation:derive 210s linear infinite;animation-delay:-80s}
+.n3{top:33%;width:min(52vw,520px);animation:derive 260s linear infinite;animation-delay:-150s}
+@keyframes derive{from{transform:translateX(0)}to{transform:translateX(190vw)}}
+html[data-meteo="nuageux"] .n1,html[data-meteo="nuageux"] .n2,html[data-meteo="brume"] .n1{opacity:.55}
+html[data-meteo="pluie"] .nuage,html[data-meteo="orage"] .nuage,html[data-meteo="neige"] .nuage{opacity:.85}
+html[data-meteo="clair"][data-nuages="1"] .n1{opacity:.45}
+html[data-meteo="clair"][data-nuages="2"] .n1,html[data-meteo="clair"][data-nuages="2"] .n2{opacity:.5}
+.pluie,.neige,.brume,.eclair{position:absolute;inset:0;opacity:0;transition:opacity 1s}
+.pluie{inset:-10% 0 0;background-image:
+  linear-gradient(103deg,transparent 0 47%,rgba(200,222,255,.5) 47% 53%,transparent 53%),
+  linear-gradient(103deg,transparent 0 47%,rgba(200,222,255,.28) 47% 53%,transparent 53%);
+  background-size:26px 78px,41px 120px;animation:chute .6s linear infinite}
+@keyframes chute{to{background-position:0 78px,0 120px}}
+html[data-meteo="pluie"] .pluie,html[data-meteo="orage"] .pluie{opacity:.55}
+.neige{background-image:radial-gradient(circle,rgba(255,255,255,.95) 0 2px,transparent 3px),radial-gradient(circle,rgba(255,255,255,.7) 0 1.5px,transparent 2.5px);
+  background-size:70px 70px,110px 110px;background-position:0 0,35px 40px;animation:flocons 9s linear infinite}
+@keyframes flocons{to{background-position:20px 70px,5px 150px}}
+html[data-meteo="neige"] .neige{opacity:.75}
+.brume{background:linear-gradient(180deg,transparent 10%,rgba(236,241,246,.32) 55%,rgba(236,241,246,.5))}
+html[data-meteo="brume"] .brume{opacity:1}
+.eclair{background:rgba(220,230,255,.55);opacity:0}
+html[data-meteo="orage"] .eclair{animation:flash 9s steps(1,end) infinite}
+@keyframes flash{0%,100%{opacity:0}2%{opacity:.5}3%{opacity:0}4%{opacity:.35}6%{opacity:0}}
+
+/* ---------- en-tête ---------- */
+header{display:flex;flex-wrap:wrap;align-items:stretch;justify-content:space-between;gap:1.4rem 2rem;margin-bottom:clamp(1.8rem,4vw,2.8rem)}
+.salut{flex:1 1 20rem;display:flex;flex-direction:column;justify-content:flex-end;min-width:0}
+h1{margin:0;font-weight:800;font-size:clamp(3.1rem,9vw,6.2rem);line-height:.94;letter-spacing:-.035em;
+  font-variation-settings:"wdth" 92;text-shadow:0 2px 28px rgba(5,12,40,.35)}
+.quand{margin:.8rem 0 0;display:flex;flex-wrap:wrap;align-items:baseline;gap:.2rem 1rem;font-size:1.15rem;color:var(--soft)}
+.quand time{font-weight:700;color:var(--ink);font-size:1.5rem;letter-spacing:-.01em}
+.etat{align-self:flex-start;margin-top:1.1rem;display:inline-flex;align-items:center;gap:.6rem;padding:.55rem 1rem .55rem .85rem;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-line);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);font-weight:600;font-size:1rem}
+.dot{width:.7rem;height:.7rem;border-radius:50%;background:#9aa6bd;flex:none}
+.etat[data-s=ok] .dot{background:#4ade80;box-shadow:0 0 0 4px rgba(74,222,128,.25)}
+.etat[data-s=warn] .dot{background:#fbbf24;box-shadow:0 0 0 4px rgba(251,191,36,.25)}
+.etat small{font-weight:450;color:var(--soft);font-size:.9rem}
+
+.meteo{flex:0 1 25.5rem;min-width:min(100%,19rem);padding:1.15rem 1.3rem 1.1rem;border-radius:26px;background:var(--glass);
+  border:1px solid var(--glass-line);backdrop-filter:blur(16px) saturate(1.2);-webkit-backdrop-filter:blur(16px) saturate(1.2);
+  box-shadow:0 18px 50px -22px rgba(0,0,0,.6)}
+.m-haut{display:flex;align-items:center;gap:1rem}
+.m-ico{width:4.6rem;height:4.6rem;flex:none}
+.m-temp{font-size:3.7rem;font-weight:780;line-height:.95;letter-spacing:-.04em}
+.m-temp sup{font-size:1.5rem;font-weight:600;vertical-align:top;position:relative;top:.35em;margin-left:.1rem;letter-spacing:0}
+.m-ciel{margin:.25rem 0 0;font-weight:650;font-size:1.1rem}
+.m-detail{margin:.1rem 0 0;color:var(--soft);font-size:.92rem}
+.jours{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-top:1rem;padding-top:.9rem;border-top:1px solid var(--glass-line)}
+.jour{display:flex;flex-direction:column;align-items:center;gap:.1rem;padding:.4rem .2rem;border-radius:14px;background:rgba(255,255,255,.07)}
+.jour b{font-weight:650;font-size:.92rem;text-transform:none}
+.jour svg{width:2.2rem;height:2.2rem}
+.jour span{font-size:.95rem;font-weight:650}
+.jour span i{font-style:normal;font-weight:430;color:var(--soft);margin-left:.3rem}
+.soleil{display:flex;justify-content:space-between;gap:.8rem;margin-top:.8rem;color:var(--soft);font-size:.92rem}
+.soleil span{display:inline-flex;align-items:center;gap:.4rem}
+.soleil svg{width:1.15rem;height:1.15rem;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.meteo[hidden]{display:none}
+
+/* ---------- sections ---------- */
+.rayon{margin-top:clamp(1.6rem,3.5vw,2.4rem)}
+.rayon:first-of-type{margin-top:0}
+.rayon>h2{display:flex;align-items:center;gap:1rem;margin:0 0 .85rem;font-size:1.2rem;font-weight:700;letter-spacing:-.01em}
+.rayon>h2::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.35),transparent)}
+.grid{display:grid;gap:clamp(.7rem,1.6vw,1rem);grid-template-columns:repeat(6,1fr)}
+.tile.w3{grid-column:span 3}.tile.w2{grid-column:span 2}.tile.w4{grid-column:span 4}.tile.w6{grid-column:span 6}
+
+.tile{--a:#444;--b:#222;--on:#fff;--s1:#fff;--s2:#fff;--s3:#fff;--mx:50%;--my:50%;
+  position:relative;isolation:isolate;display:flex;flex-direction:column;justify-content:space-between;gap:1.6rem;overflow:hidden;
+  min-height:11rem;padding:1.3rem 1.4rem 1.15rem;border-radius:24px;color:var(--on);text-decoration:none;
+  background:linear-gradient(145deg,var(--a),var(--b));box-shadow:0 1px 0 rgba(255,255,255,.18) inset,0 14px 30px -18px rgba(0,0,0,.7);
+  transition:transform .35s var(--ease),box-shadow .35s var(--ease)}
+.tile::before{content:"";position:absolute;inset:0;z-index:-1;opacity:0;transition:opacity .3s;
+  background:radial-gradient(420px circle at var(--mx) var(--my),rgba(255,255,255,.2),transparent 60%)}
+.tile:hover,.tile:focus-visible{transform:translateY(-5px);box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 26px 40px -18px rgba(0,0,0,.75)}
+.tile:hover::before{opacity:1}
+.tile:active{transform:translateY(-1px) scale(.988);transition-duration:.1s}
+.tile:focus-visible{outline:3px solid #fff;outline-offset:4px}
+.scene{position:absolute;right:0;bottom:0;width:74%;height:100%;z-index:-1;pointer-events:none;
+  -webkit-mask-image:linear-gradient(to left,#000 45%,transparent 100%);mask-image:linear-gradient(to left,#000 45%,transparent 100%);
+  transition:transform .6s var(--ease)}
+.tile:hover .scene,.tile:focus-visible .scene{transform:scale(1.07) translate(-8px,-4px)}
+.s1{fill:var(--s1)}.s2{fill:var(--s2)}.s3{fill:var(--s3)}
+.chip{display:inline-grid;place-items:center;width:2.9rem;height:2.9rem;border-radius:16px;background:rgba(255,255,255,.18);
+  transition:transform .4s var(--ease)}
+.tile:hover .chip{transform:rotate(-8deg) scale(1.1)}
+.ico{width:1.65rem;height:1.65rem;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tile>div{position:relative;z-index:1}
+.tile h3{margin:0;font-size:1.55rem;font-weight:740;line-height:1.1;letter-spacing:-.02em}
+.tile p{margin:.35rem 0 0;font-size:1.02rem;opacity:.92;max-width:24ch;line-height:1.35}
+.tile.w3 h3,.tile.w4 h3,.tile.w6 h3{font-size:clamp(1.8rem,3.2vw,2.35rem)}
+.tile.w2 p{max-width:16ch}
+.tile.w2 .scene{width:62%;-webkit-mask-image:linear-gradient(to left,#000 60%,transparent 100%);mask-image:linear-gradient(to left,#000 60%,transparent 100%)}
+.tile:not(.musique):not(.pdf) h3,.tile:not(.musique):not(.pdf) p{text-shadow:0 1px 12px rgba(0,0,0,.28)}
+.tile.domotique .scene{width:62%}
+.pill{display:inline-flex;align-items:center;gap:.5rem;align-self:flex-start;padding:.28rem .75rem .28rem .6rem;border-radius:999px;
+  background:rgba(8,12,30,.34);font-size:.9rem;font-weight:620;color:#fff}
+.pill i{width:.6rem;height:.6rem;border-radius:50%;background:#aab4c8;flex:none}
+.tile[data-s=ok] .pill i{background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,.28)}
+.tile[data-s=off]{filter:saturate(.25) brightness(.9)}
+.tile[data-s=off] .pill i{background:#f87171}
+
+.films{--a:#7234ac;--b:#3a1566;--s1:#c084fc;--s2:#ead6ff;--s3:#f0abfc}
+.photos{--a:#0f95a2;--b:#07505d;--s1:#5eead4;--s2:#14b8a6;--s3:#0f766e}
+.musique{--a:#f9ca4f;--b:#e8a01a;--on:#2a1b00;--s1:#7c4a03;--s2:#9a5b05;--s3:#2a1b00}
+.musique .chip,.pdf .chip{background:rgba(0,0,0,.1)}
+.musique .pill,.pdf .pill{background:rgba(255,255,255,.55);color:#1d1a10}
+.videos{--a:#d8206f;--b:#860f40;--s1:#ff8fb8;--s2:#ffd1e2;--s3:#fff}
+.cloud{--a:#3f80ee;--b:#2150b8;--s1:#fff;--s2:#cfe0ff;--s3:#9bbcff}
+.docs{--a:#648637;--b:#3b5220;--s1:#fff;--s2:#e7efd8;--s3:#c9dca8}
+.pdf{--a:#e2e9f3;--b:#b7c6da;--on:#12203a;--s1:#12203a;--s2:#4a6288;--s3:#fff}
+.fichiers{--a:#d9611c;--b:#8a3010;--s1:#ffd8b5;--s2:#ffb37a;--s3:#fff}
+.domotique{--a:#26774f;--b:#113f2a;--s1:#fde68a;--s2:#86efac;--s3:#0b2a1c}
+
+/* petits mouvements propres à chaque scène, au survol seulement */
+.scene g,.scene circle,.scene path,.scene rect{transform-box:fill-box}
+.strip{transition:transform .8s var(--ease)}
+.tile:hover .strip{transform:rotate(-16deg) translateX(-34px)}
+.soleil-photo{transition:transform .8s var(--ease)}
+.tile:hover .soleil-photo{transform:translateY(-14px)}
+.barre{transform-origin:50% 100%;transform-box:fill-box}
+.tile:hover .barre{animation:danse 1s ease-in-out infinite alternate}
+.tile:hover .barre:nth-child(2n){animation-duration:.7s;animation-delay:-.2s}
+.tile:hover .barre:nth-child(3n){animation-duration:.9s;animation-delay:-.5s}
+@keyframes danse{from{transform:scaleY(.45)}to{transform:scaleY(1.1)}}
+.disque{transform-origin:50% 50%;transform-box:fill-box}
+.tile:hover .disque{animation:tourne 6s linear infinite}
+@keyframes tourne{to{transform:rotate(360deg)}}
+.fleche{transition:transform .5s var(--ease)}
+.tile:hover .fleche{animation:tombe .9s var(--ease) infinite}
+@keyframes tombe{0%{transform:translateY(-8px);opacity:.4}60%{transform:translateY(6px);opacity:1}100%{transform:translateY(0)}}
+.cumul{transition:transform .7s var(--ease)}
+.tile:hover .cumul-b{transform:translateX(-18px) rotate(-5deg)}
+.tile:hover .cumul-c{transform:translateX(16px) rotate(5deg)}
+.petit-nuage{transition:transform 1.2s var(--ease)}
+.tile:hover .petit-nuage{transform:translateX(-26px)}
+.fenetre{transition:opacity .5s,filter .5s;opacity:.55}
+.tile:hover .fenetre{opacity:1;filter:drop-shadow(0 0 6px #fde68a)}
+.tile:hover .fenetre:nth-of-type(2){transition-delay:.12s}
+.tile:hover .fenetre:nth-of-type(3){transition-delay:.24s}
+
+/* arrivée de la page : une seule séquence */
+.rise{animation:monte .7s var(--ease) both;animation-delay:calc(var(--i,0)*55ms)}
+@keyframes monte{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+header.rise{animation-delay:0s}
+
+/* ---------- bas de page ---------- */
+footer{position:relative;z-index:1;margin:clamp(2rem,5vw,3.2rem) calc(-1*clamp(1rem,4vw,3rem)) 0;padding:1.3rem clamp(1rem,4vw,3rem) 1.6rem}
+.pied{max-width:1120px;margin:0 auto;display:flex;flex-wrap:wrap;gap:.9rem 1.4rem;align-items:center;justify-content:space-between;font-size:1.02rem}
+.pied-g{display:flex;flex-wrap:wrap;gap:.7rem 1rem;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:.55rem;min-height:2.8rem;padding:.55rem 1.15rem;border-radius:999px;font:inherit;font-weight:650;
+  text-decoration:none;cursor:pointer;border:1px solid var(--glass-line);background:var(--glass);color:var(--ink);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:transform .25s var(--ease),background .25s,box-shadow .25s}
+.btn:hover{transform:translateY(-2px);background:rgba(255,255,255,.18)}
+.btn:active{transform:scale(.97)}
+.btn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.btn.plein{background:#fff;color:#0d1633;border-color:#fff}
+.btn.plein:hover{background:#fff;box-shadow:0 10px 24px -10px rgba(255,255,255,.7)}
+.btn svg{width:1.15rem;height:1.15rem;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.aide{font-weight:600;text-underline-offset:.22em;text-decoration-thickness:2px}
+.aide:focus-visible{outline:3px solid #fff;outline-offset:3px;border-radius:6px}
+.discret{color:var(--soft)}
+.apercu{display:none;margin:0 auto .8rem;max-width:1120px;font-size:.9rem;color:#ffe9a8}
+
+/* ---------- tablette tactile : grandes zones ---------- */
+@media (pointer:coarse) and (min-width:600px){.tile{min-height:12.5rem;padding:1.6rem 1.7rem 1.4rem}.tile h3{font-size:1.7rem}.tile p{font-size:1.12rem}}
+
+/* ---------- petits écrans ---------- */
+@media (max-width:919px){
+  .grid{grid-template-columns:repeat(2,1fr)}
+  .tile,.tile.w2,.tile.w3,.tile.w4{grid-column:span 1}
+  .tile.w6,.tile.big{grid-column:span 2}
+  .tile.w4{grid-column:span 2}
+}
+@media (max-width:560px){
+  .grid{grid-template-columns:1fr}
+  .tile,.tile.w2,.tile.w3,.tile.w4,.tile.w6{grid-column:span 1}
+  .tile{min-height:10rem}
+  .tile .scene,.tile.w2 .scene{width:54%}
+  .tile p,.tile.w2 p{max-width:19ch}
+  .m-temp{font-size:3.1rem}
+}
+
+/* ---------- mode télé : lisible à 3 mètres, télécommande ---------- */
+html.tv{font-size:clamp(17px,1.4vw,30px)}
+html.tv body{padding:1.6rem 2.4rem 0;cursor:none}
+html.tv .wrap,html.tv .pied{max-width:none}
+html.tv header{margin-bottom:1rem;flex-wrap:nowrap}
+html.tv h1{font-size:3.2rem}
+html.tv .quand{margin-top:.3rem;font-size:1rem}
+html.tv .etat{margin-top:.6rem}
+html.tv .meteo{flex-basis:17rem;padding:.8rem 1rem}
+html.tv .m-ico{width:3.2rem;height:3.2rem}
+html.tv .m-temp{font-size:2.6rem}
+html.tv .jours,html.tv .soleil,html.tv .m-detail{display:none}
+html.tv .rayon{margin-top:.9rem}
+html.tv .rayon>h2{font-size:1rem;margin-bottom:.5rem}
+html.tv main{display:grid;grid-template-columns:repeat(4,1fr);gap:.9rem}
+html.tv .rayon,html.tv .grid{display:contents}
+html.tv .rayon>h2{display:none}
+html.tv .meteo{align-self:flex-start}
+html.tv .tile,html.tv .tile.w2,html.tv .tile.w3,html.tv .tile.w4,html.tv .tile.w6{grid-column:span 1;min-height:8rem;padding:1.1rem 1.3rem 1rem;gap:.6rem}
+html.tv .tile h3{font-size:1.35rem;white-space:nowrap}
+html.tv .tile p{display:none}
+html.tv .chip{width:2.3rem;height:2.3rem}
+html.tv .tile:hover{transform:none}
+html.tv .tile:focus{outline:.25rem solid #fff;outline-offset:.25rem;transform:scale(1.04);z-index:2}
+html.tv .scene{display:none}
+html.tv .noTV{display:none}
+html.tv footer{margin-top:.8rem;padding-top:.6rem;padding-bottom:.8rem}
+html.tv .rise{animation:none}
+html.tv .sky *{animation:none!important}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .tile:hover,.tile:focus-visible{transform:none}
+}
+</style>
+<script>
+/* https automatique (14/10/2026) : sur un nom .lan ouvert en http, on teste si cet appareil accepte le certificat
+   de la maison (petite image chargée en https, 2,5 s maxi). Oui : on passe en https. Non : on reste en http et on
+   ne reteste pas pendant 3 jours (la page certificat efface ce « non »). ?http=1 force le http. */
+(function(){
+  var K = 'https-non', TROIS_JOURS = 3*24*3600*1000;
+  if (location.protocol !== 'http:' || !/\.lan$/.test(location.hostname)) return;
+  if (/[?&]http=1(&|$)/.test(location.search)) return;
+  try { var t = +localStorage.getItem(K); if (t && Date.now() - t < TROIS_JOURS) return; } catch(e){}
+  var img = new Image(), fini = false;
+  function non(){ try { localStorage.setItem(K, String(Date.now())); } catch(e){} }
+  var minuterie = setTimeout(function(){ if (fini) return; fini = true; non(); }, 2500);
+  img.onload = function(){
+    if (fini) return; fini = true; clearTimeout(minuterie);
+    location.replace('https://' + location.host + location.pathname + location.search + location.hash);
+  };
+  img.onerror = function(){ if (fini) return; fini = true; clearTimeout(minuterie); non(); };
+  img.src = 'https://' + location.hostname + '/sonde-https.png?t=' + Date.now();
+})();
+</script>
+</head>
+<body>
+<div class="sky" aria-hidden="true">
+  <div class="sky-base"></div>
+  <div class="etoiles"></div>
+  <div class="orb" id="orb"></div>
+  <svg class="nuage n3" viewBox="0 0 120 60"><use href="#nuage"/></svg>
+  <svg class="nuage n1" viewBox="0 0 120 60"><use href="#nuage"/></svg>
+  <svg class="nuage n2" viewBox="0 0 120 60"><use href="#nuage"/></svg>
+  <div class="brume"></div><div class="neige"></div><div class="pluie"></div><div class="eclair"></div>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="nuage" viewBox="0 0 120 60"><path d="M28 56C10 56 4 36 20 30 20 12 46 6 56 22 64 6 94 12 96 34 114 34 118 56 98 56Z"/></symbol>
+  <symbol id="i-film" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4"/></symbol>
+  <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></symbol>
+  <symbol id="i-photo" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="M3 17l5-5 4 4 3-3 6 6"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18a4 4 0 0 1-.6-7.96A6 6 0 0 1 18 9.5 4.5 4.5 0 0 1 17.5 18H7z"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4M10 12h6M10 16h6"/></symbol>
+  <symbol id="i-pdf" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 16v-5M9.5 13.5L12 11l2.5 2.5"/></symbol>
+  <symbol id="i-house" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-sunrise" viewBox="0 0 24 24"><path d="M12 3v5M7 8l-2-2M17 8l2-2M3 17h18M6 17a6 6 0 0 1 12 0M9 11l3-3 3 3"/></symbol>
+  <symbol id="i-sunset" viewBox="0 0 24 24"><path d="M12 8V3M7 6L5 4M17 6l2-2M3 17h18M6 17a6 6 0 0 1 12 0M9 5l3 3 3-3"/></symbol>
+</svg>
+
+<div class="wrap">
+  <header class="rise">
+    <div class="salut">
+      <h1 id="salut">Bonjour</h1>
+      <p class="quand"><span id="date"></span><time id="heure"></time></p>
+      <div class="etat" id="etat" data-s="?" role="status" aria-live="polite"><span class="dot"></span><span><span id="etat-txt">Vérification…</span> <small id="etat-maj"></small></span></div>
+    </div>
+    <aside class="meteo" id="meteo" aria-label="Météo" hidden>
+      <div class="m-haut">
+        <span class="m-ico" id="m-ico"></span>
+        <div>
+          <div class="m-temp"><span id="m-t">--</span><sup>°C</sup></div>
+          <p class="m-ciel" id="m-ciel"></p>
+          <p class="m-detail" id="m-detail"></p>
+        </div>
+      </div>
+      <div class="jours" id="jours"></div>
+      <div class="soleil">
+        <span><svg aria-hidden="true"><use href="#i-sunrise"/></svg>Lever <b id="m-lever">--:--</b></span>
+        <span><svg aria-hidden="true"><use href="#i-sunset"/></svg>Coucher <b id="m-coucher">--:--</b></span>
+      </div>
+    </aside>
+  </header>
+
+  <main>
+    <section class="rayon" aria-labelledby="r1">
+      <h2 id="r1" class="rise" style="--i:1">Regarder et écouter</h2>
+      <div class="grid">
+        <a class="tile w4 films rise" style="--i:2" href="http://films.lan" data-id="films">
+          <svg class="scene" viewBox="0 0 420 260" preserveAspectRatio="xMaxYMax slice" aria-hidden="true" focusable="false"><circle class="s1" cx="330" cy="140" r="150" opacity=".2"/><g class="strip" transform="rotate(-16 260 150)"><rect x="-60" y="110" width="640" height="82" rx="8" fill="rgba(18,5,38,.6)"/><g class="s2" opacity=".62"><rect x="-40" y="124" width="64" height="54" rx="6"/><rect x="40" y="124" width="64" height="54" rx="6"/><rect x="120" y="124" width="64" height="54" rx="6"/><rect x="200" y="124" width="64" height="54" rx="6"/><rect x="280" y="124" width="64" height="54" rx="6"/><rect x="360" y="124" width="64" height="54" rx="6"/><rect x="440" y="124" width="64" height="54" rx="6"/><rect x="520" y="124" width="64" height="54" rx="6"/><rect x="600" y="124" width="64" height="54" rx="6"/></g><g fill="rgba(255,255,255,.55)"><rect x="-56" y="116" width="9" height="6" rx="2"/><rect x="-56" y="180" width="9" height="6" rx="2"/><rect x="-36" y="116" width="9" height="6" rx="2"/><rect x="-36" y="180" width="9" height="6" rx="2"/><rect x="-16" y="116" width="9" height="6" rx="2"/><rect x="-16" y="180" width="9" height="6" rx="2"/><rect x="4" y="116" width="9" height="6" rx="2"/><rect x="4" y="180" width="9" height="6" rx="2"/><rect x="24" y="116" width="9" height="6" rx="2"/><rect x="24" y="180" width="9" height="6" rx="2"/><rect x="44" y="116" width="9" height="6" rx="2"/><rect x="44" y="180" width="9" height="6" rx="2"/><rect x="64" y="116" width="9" height="6" rx="2"/><rect x="64" y="180" width="9" height="6" rx="2"/><rect x="84" y="116" width="9" height="6" rx="2"/><rect x="84" y="180" width="9" height="6" rx="2"/><rect x="104" y="116" width="9" height="6" rx="2"/><rect x="104" y="180" width="9" height="6" rx="2"/><rect x="124" y="116" width="9" height="6" rx="2"/><rect x="124" y="180" width="9" height="6" rx="2"/><rect x="144" y="116" width="9" height="6" rx="2"/><rect x="144" y="180" width="9" height="6" rx="2"/><rect x="164" y="116" width="9" height="6" rx="2"/><rect x="164" y="180" width="9" height="6" rx="2"/><rect x="184" y="116" width="9" height="6" rx="2"/><rect x="184" y="180" width="9" height="6" rx="2"/><rect x="204" y="116" width="9" height="6" rx="2"/><rect x="204" y="180" width="9" height="6" rx="2"/><rect x="224" y="116" width="9" height="6" rx="2"/><rect x="224" y="180" width="9" height="6" rx="2"/><rect x="244" y="116" width="9" height="6" rx="2"/><rect x="244" y="180" width="9" height="6" rx="2"/><rect x="264" y="116" width="9" height="6" rx="2"/><rect x="264" y="180" width="9" height="6" rx="2"/><rect x="284" y="116" width="9" height="6" rx="2"/><rect x="284" y="180" width="9" height="6" rx="2"/><rect x="304" y="116" width="9" height="6" rx="2"/><rect x="304" y="180" width="9" height="6" rx="2"/><rect x="324" y="116" width="9" height="6" rx="2"/><rect x="324" y="180" width="9" height="6" rx="2"/><rect x="344" y="116" width="9" height="6" rx="2"/><rect x="344" y="180" width="9" height="6" rx="2"/><rect x="364" y="116" width="9" height="6" rx="2"/><rect x="364" y="180" width="9" height="6" rx="2"/><rect x="384" y="116" width="9" height="6" rx="2"/><rect x="384" y="180" width="9" height="6" rx="2"/><rect x="404" y="116" width="9" height="6" rx="2"/><rect x="404" y="180" width="9" height="6" rx="2"/><rect x="424" y="116" width="9" height="6" rx="2"/><rect x="424" y="180" width="9" height="6" rx="2"/><rect x="444" y="116" width="9" height="6" rx="2"/><rect x="444" y="180" width="9" height="6" rx="2"/><rect x="464" y="116" width="9" height="6" rx="2"/><rect x="464" y="180" width="9" height="6" rx="2"/><rect x="484" y="116" width="9" height="6" rx="2"/><rect x="484" y="180" width="9" height="6" rx="2"/><rect x="504" y="116" width="9" height="6" rx="2"/><rect x="504" y="180" width="9" height="6" rx="2"/><rect x="524" y="116" width="9" height="6" rx="2"/><rect x="524" y="180" width="9" height="6" rx="2"/><rect x="544" y="116" width="9" height="6" rx="2"/><rect x="544" y="180" width="9" height="6" rx="2"/><rect x="564" y="116" width="9" height="6" rx="2"/><rect x="564" y="180" width="9" height="6" rx="2"/><rect x="584" y="116" width="9" height="6" rx="2"/><rect x="584" y="180" width="9" height="6" rx="2"/><rect x="604" y="116" width="9" height="6" rx="2"/><rect x="604" y="180" width="9" height="6" rx="2"/></g></g><circle cx="338" cy="168" r="46" fill="rgba(255,255,255,.95)"/><path d="M326 146v44l38-22z" fill="#5b2a86"/><g class="s1" opacity=".85"><circle cx="250" cy="52" r="3"/><circle cx="388" cy="40" r="2.4"/><circle cx="300" cy="28" r="2"/><circle cx="214" cy="96" r="2"/></g></svg>
+          <span class="chip"><svg class="ico" aria-hidden="true"><use href="#i-film"/></svg></span>
+          <div><h3>Films et séries</h3><p>Regarder un film ou une série.</p></div>
+          <span class="pill"><i></i><b>Vérification…</b></span>
+        </a>
+        <a class="tile w2 photos rise" style="--i:3" href="http://photos.lan" data-id="photos">
+          <svg class="scene" viewBox="0 0 420 260" preserveAspectRatio="xMaxYMax slice" aria-hidden="true" focusable="false"><g class="soleil-photo"><circle cx="318" cy="84" r="30" fill="#fde68a"/><circle cx="318" cy="84" r="46" fill="#fde68a" opacity=".22"/></g><path d="M120 260 L220 118 L282 196 L322 150 L440 260Z" class="s1" opacity=".5"/><path d="M170 260 L270 150 L340 224 L372 190 L440 260Z" class="s2"/><path d="M0 260 C80 214 170 222 250 238 S390 232 440 214 V260Z" class="s3"/><g fill="none" stroke="rgba(255,255,255,.85)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M236 56h-22v22M388 56h22v22M236 218h-22v-22M388 218h22v-22"/></g></svg>
+          <span class="chip"><svg class="ico" aria-hidden="true"><use href="#i-photo"/></svg></span>
+          <div><h3>Photos</h3><p>Retrouver et ranger les photos de la famille.</p></div>
+          <span class="pill"><i></i><b>Vérification…</b></span>
+        </a>
+        <a class="tile w2 musique rise" style="--i:4" href="http://musique.lan" data-id="musique">
+          <svg class="scene" viewBox="0 0 420 260" preserveAspectRatio="xMaxYMax slice" aria-hidden="true" focusable="false"><g class="s1" opacity=".42"><rect class="barre" x="204" y="166" width="12" height="70" rx="6"/><rect class="barre" x="224" y="126" width="12" height="110" rx="6"/><rect class="barre" x="244" y="86" width="12" height="150" rx="6"/><rect class="barre" x="264" y="141" width="12" height="95" rx="6"/><rect class="barre" x="284" y="106" width="12" height="130" rx="6"/><rect class="barre" x="304" y="176" width="12" height="60" rx="6"/><rect class="barre" x="324" y="118" width="12" height="118" rx="6"/><rect class="barre" x="344" y="152" width="12" height="84" rx="6"/></g><g class="disque"><circle cx="352" cy="170" r="84" fill="#2a1b00" opacity=".88"/><circle cx="352" cy="170" r="66" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="2"/><circle cx="352" cy="170" r="52" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="2"/><circle cx="352" cy="170" r="38" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="2"/><circle cx="352" cy="170" r="22" fill="#f9ca4f"/><circle cx="352" cy="170" r="5" fill="#2a1b00"/><path d="M352 96a74 74 0 0 1 52 22" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="5" stroke-linecap="round"/></g></svg>
+          <span class="chip"><svg class="ico" aria-hidden="true"><use href="#i-music"/></svg></span>
+          <div><h3>Musique</h3><p>Écouter ta musique.</p></div>
+          <span class="pill"><i></i><b>Vérification…</b></span>
+        </a>
+        <a class="tile w4 videos rise" style="--i:5" href="http://videos.lan" data-id="videos">
+          <svg class="scene" viewBox="0 0 420 260" preserveAspectRatio="xMaxYMax meet" aria-hidden="true" focusable="false"><circle class="s2" cx="330" cy="150" r="140" opacity=".12"/><rect x="206" y="70" width="176" height="104" rx="16" fill="rgba(255,255,255,.2)"/><rect x="206" y="70" width="176" height="104" rx="16" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="3"/><path d="M274 98v46l40-23z" fill="rgba(255,255,255,.92)"/><g class="fleche"><circle cx="348" cy="196" r="34" fill="#fff"/><path d="M348 178v30M334 196l14 14 14-14" fill="none" stroke="#b01558" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></g><path d="M296 244h104" stroke="rgba(255,255,255,.7)" stroke-width="5" stroke-linecap="round"/></svg>
+          <span class="chip"><svg class="ico" aria-hidden="true"><use href="#i-down"/></svg></span>
+          <div><h3>Télécharger une vidéo</h3><p>Enregistrer une vidéo d'internet.</p></div>
+          <span class="pill"><i></i><b>Vérification…</b></span>
+        </a>
+      </div>
+    </section>
+
+    <section class="rayon" aria-labelledby="r2">
+      <h2 id="r2" class="rise" style="--i:6">Papiers et fichiers</h2>
+      <div class="grid">
+        <a class="tile w2 cloud rise" style="--i:7" href="http://cloud.lan" data-id="cloud">
+          <svg class="scene" viewBox="0 0 420 260" preserveAspectRatio="xMaxYMax slice" aria-hidden="true" focusable="false"><use class="petit-nuage s3" href="#nuage" x="180" y="22" width="130" height="65" opacity=".55"/><use class="s2" href="#nuage" x="236" y="78" width="200" height="100" opacity=".95"/><use class="petit-nuage s1" href="#nuage" x="150" y="150" width="170" height="85" opacity=".9"/><g fill="rgba(255,255,255,.9)"><path d="M352 30h22l10 10v26h-32z"/><path d="M394 112h18l8 8v22h-26z" opacity=".8"/></g><g fill="none" stroke="#3f80ee" stroke-width="3" stroke-linecap="round"><path d="M358 50h18M358 58h18M399 128h12M399 134h12"/></g></svg>
+          <span class="chip"><svg class="ico" aria-hidden="true"><use href="#i-cloud"/></svg></span>
+          <div><h3>Cloud</h3><p>Garder et partager des fichiers.</p></div>
+          <span class="pill"><i></i><b>Vérification…</b></span>
+        </a>
+        <a class="tile w2 docs rise" style="--i:8" href="http://docs.lan" data-id="docs">
+          <svg class="scene" viewBox="0 0 420 260" preserveAspectRatio="xMaxYMax slice" aria-hidden="true" focusable="false"><g class="cumul cumul-b" transform="rotate(-9 273 112)"><rect x="228" y="52" width="104" height="130" rx="10" fill="#fff" opacity="0.55"/><rect x="244" y="74" width="70" height="5" rx="2.5" fill="#4a6a2a" opacity=".55"/><rect x="244" y="90" width="52" height="5" rx="2.5" fill="#4a6a2a" opacity=".55"/><rect x="244" y="106" width="70" height="5" rx="2.5" fill="#4a6a2a" opacity=".55"/><rect x="244" y="122" width="52" height="5" rx="2.5" fill="#4a6a2a" opacity=".55"/></g><g class="cumul cumul-c" transform="rotate(8 323 122)"><rect x="278" y="62" width="104" height="130" rx="10" fill="#fff" opacity="0.7"/><rect x="294" y="84" width="70" height="5" rx="2.5" fill="#4a6a2a" opacity=".55"/><rect x="294" y="100" width="52" height="5" rx="2.5" fill="#4a6a2a" opacity=".55"/><rect x="294" y="116" width="70" height="5" rx="2.5" fill="#4a6a2a" opacity=".55"/><rect x="294" y="132" width="52" height="5" rx="2.5" fill="#4a6a2a" opacity=".55"/></g><g class="cumul cumul-a" transform="rotate(0 299 136)"><rect x="254" y="76" width="104" height="130" rx="10" fill="#fff" opacity="0.96"/><rect x="270" y="98" width="70" height="5" rx="2.5" fill="#4a6a2a" opacity=".55"/><rect x="270" y="114" width="52" height="5" rx="2.5" fill="#4a6a2a" opacity=".55"/><rect x="270" y="130" width="70" height="5" rx="2.5" fill="#4a6a2a" opacity=".55"/><rect x="270" y="146" width="52" height="5" rx="2.5" fill="#4a6a2a" opacity=".55"/></g><circle cx="366" cy="200" r="28" fill="rgba(100,134,55,.35)" stroke="#fff" stroke-width="7"/><path d="M386 220l22 22" stroke="#fff" stroke-width="9" stroke-linecap="round"/></svg>
+          <span class="chip"><svg class="ico" aria-hidden="true"><use href="#i-doc"/></svg></span>
+          <div><h3>Documents</h3><p>Retrouver un papier scanné.</p></div>
+          <span class="pill"><i></i><b>Vérification…</b></span>
+        </a>
+        <a class="tile w2 pdf rise" style="--i:9" href="http://pdf.lan" data-id="pdf">
+          <svg class="scene" viewBox="0 0 420 260" preserveAspectRatio="xMaxYMax slice" aria-hidden="true" focusable="false"><g class="cumul cumul-b"><rect x="214" y="56" width="104" height="132" rx="10" class="s1" opacity=".16"/><rect x="214" y="56" width="104" height="132" rx="10" fill="none" stroke="#12203a" stroke-width="3" opacity=".5"/></g><g class="cumul cumul-c"><rect x="270" y="86" width="104" height="132" rx="10" fill="#fff" opacity=".95"/><path d="M342 86h12l20 20v-8" class="s2" opacity=".0"/><g fill="#12203a" opacity=".55"><rect x="286" y="112" width="64" height="6" rx="3"/><rect x="286" y="130" width="48" height="6" rx="3"/><rect x="286" y="148" width="58" height="6" rx="3"/></g></g><path d="M196 214h200" stroke="#12203a" stroke-width="3" stroke-dasharray="8 8" opacity=".5" stroke-linecap="round"/></svg>
+          <span class="chip"><svg class="ico" aria-hidden="true"><use href="#i-pdf"/></svg></span>
+          <div><h3>Outils PDF</h3><p>Fusionner, découper ou alléger un PDF.</p></div>
+          <span class="pill"><i></i><b>Vérification…</b></span>
+        </a>
+        <a class="tile w6 fichiers rise" style="--i:10" href="http://fichiers.lan" data-id="fichiers">
+          <svg class="scene" viewBox="0 0 420 260" preserveAspectRatio="xMaxYMid meet" aria-hidden="true" focusable="false"><circle class="s1" cx="330" cy="130" r="120" opacity=".14"/><g class="cumul cumul-b" transform="rotate(-10 290 110)"><rect x="252" y="58" width="76" height="96" rx="8" fill="#fff" opacity=".6"/></g><g class="cumul cumul-c" transform="rotate(9 360 110)"><rect x="322" y="62" width="76" height="96" rx="8" fill="#fff" opacity=".75"/></g><path d="M226 112a12 12 0 0 1 12-12h50l16 16h92a12 12 0 0 1 12 12v100a12 12 0 0 1-12 12H238a12 12 0 0 1-12-12z" fill="#5a1f08" opacity=".85"/><path d="M226 140h182v88a12 12 0 0 1-12 12H238a12 12 0 0 1-12-12z" fill="rgba(255,255,255,.18)"/><g class="fleche"><circle cx="317" cy="186" r="30" fill="#fff"/><path d="M317 202v-30M303 186l14-14 14 14" fill="none" stroke="#b5461a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></g></svg>
+          <span class="chip"><svg class="ico" aria-hidden="true"><use href="#i-folder"/></svg></span>
+          <div><h3>Ajouter des fichiers</h3><p>Envoyer des films, séries, vidéos ou musique, avec ton compte.</p></div>
+          <span class="pill"><i></i><b>Vérification…</b></span>
+        </a>
+      </div>
+    </section>
+
+    <section class="rayon" aria-labelledby="r3">
+      <h2 id="r3" class="rise" style="--i:11">La maison</h2>
+      <div class="grid">
+        <a class="tile w6 domotique rise" style="--i:12" href="http://domotique.lan" data-id="domotique">
+          <svg class="scene" viewBox="0 0 420 260" preserveAspectRatio="xMaxYMid meet" aria-hidden="true" focusable="false"><circle class="s1" cx="330" cy="110" r="120" opacity=".1"/><g fill="none" stroke="rgba(255,255,255,.55)" stroke-width="4" stroke-linecap="round"><path d="M296 38a58 58 0 0 1 68 0M308 56a38 38 0 0 1 44 0"/></g><circle cx="330" cy="72" r="5" fill="#fff"/><path d="M244 120l86-52 86 52v124H244z" fill="#0b2a1c" opacity=".82"/><path d="M232 124l98-60 98 60" fill="none" stroke="rgba(255,255,255,.8)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><rect class="fenetre" x="266" y="146" width="36" height="36" rx="5" fill="#fde68a"/><rect class="fenetre" x="358" y="146" width="36" height="36" rx="5" fill="#fde68a"/><rect class="fenetre" x="266" y="198" width="36" height="46" rx="5" fill="#fcd34d" opacity=".7"/><rect x="318" y="192" width="24" height="52" rx="5" fill="rgba(255,255,255,.25)"/><path d="M200 244h220" stroke="rgba(255,255,255,.35)" stroke-width="4" stroke-linecap="round"/><g class="s2" opacity=".8"><circle cx="228" cy="44" r="2.5"/><circle cx="408" cy="30" r="2"/><circle cx="196" cy="100" r="2"/></g></svg>
+          <span class="chip"><svg class="ico" aria-hidden="true"><use href="#i-house"/></svg></span>
+          <div><h3>Maison connectée</h3><p>Lumières, volets, chauffage.</p></div>
+          <span class="pill"><i></i><b>Vérification…</b></span>
+        </a>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer>
+  <div class="pied">
+    <div class="pied-g">
+      <a class="btn plein noTV" href="certificat.html"><svg aria-hidden="true"><use href="#i-lock"/></svg>Certificat</a>
+      <a class="aide noTV" href="guide.html">Besoin d'aide ? Ouvrir le mode d'emploi</a>
+      <button class="btn" type="button" id="btn-tv" aria-pressed="false">Mode télé</button>
+    </div>
+    <span class="discret noTV">Un souci ? Préviens Alex.</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var $ = function(s){return document.querySelector(s)};
+  var root = document.documentElement;
+  var tiles = Array.prototype.slice.call(document.querySelectorAll('.tile'));
+  var DUCK = 'exemple.duckdns.org';
+  var PAS_DE_RENVOI = ['cloud'];   /* Nextcloud n'accepte que cloud.lan pour l'instant */
+
+  /* les liens gardent le protocole de la page et, sur le nom DuckDNS, le même domaine */
+  if (location.protocol === 'http:' || location.protocol === 'https:') {
+    Array.prototype.forEach.call(document.querySelectorAll('a[href^="http://"]'), function(a){
+      try {
+        var u = new URL(a.href);
+        if (!/\.lan$/.test(u.hostname)) return;
+        var h = u.host;
+        var sur = location.hostname.slice(-DUCK.length) === DUCK;
+        var nom = u.hostname.replace(/\.lan$/, '');
+        if (sur && PAS_DE_RENVOI.indexOf(nom) < 0) h = nom + '.' + DUCK;
+        var proto = nom === 'cloud' ? 'http:' : location.protocol;   /* cloud toujours en http */
+        a.href = proto + '//' + h + u.pathname + u.search + u.hash;
+      } catch(e){}
+    });
+  }
+
+  function lire(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
+  function ecrire(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
+  function qs(k){ var m = location.search.match(new RegExp('[?&]'+k+'=([^&]*)')); return m ? decodeURIComponent(m[1]) : null; }
+
+  /* ---------- mode télé ---------- */
+  function detecterTV(){
+    var q = qs('tv');
+    if (q !== null) { ecrire('tv', q); if (q === '1') return true; if (q === '0') return false; }
+    var m = lire('tv');
+    if (m === '1') return true;
+    if (m === '0') return false;
+    return /SMART-TV|SmartTV|Tizen|Web0S|WebOS|NetCast|HbbTV|AFTM|AFTS|AFTT|Android TV|BRAVIA|CrKey|VIDAA/i.test(navigator.userAgent);
+  }
+  function poserTV(on){
+    root.classList.toggle('tv', on);
+    $('#btn-tv').setAttribute('aria-pressed', on ? 'true' : 'false');
+    $('#btn-tv').textContent = on ? 'Quitter le mode télé' : 'Mode télé';
+    if (on) { var f = document.querySelector('.tile'); if (f) f.focus(); }
+    if (dernierEtat) appliquer(dernierEtat);
+  }
+  $('#btn-tv').addEventListener('click', function(){
+    var on = !root.classList.contains('tv');
+    ecrire('tv', on ? '1' : '0');
+    poserTV(on);
+  });
+  document.addEventListener('keydown', function(e){
+    if (!root.classList.contains('tv')) return;
+    var d = {ArrowLeft:[-1,0], ArrowRight:[1,0], ArrowUp:[0,-1], ArrowDown:[0,1]}[e.key];
+    if (!d) return;
+    var cur = document.activeElement;
+    var items = Array.prototype.slice.call(document.querySelectorAll('.tile,#btn-tv'));
+    if (items.indexOf(cur) < 0) { if (items[0]) items[0].focus(); e.preventDefault(); return; }
+    var r = cur.getBoundingClientRect(), cx = r.left + r.width/2, cy = r.top + r.height/2, best = null, bs = 1e9;
+    items.forEach(function(el){
+      if (el === cur) return;
+      var b = el.getBoundingClientRect(), x = b.left + b.width/2 - cx, y = b.top + b.height/2 - cy;
+      var along = x*d[0] + y*d[1];
+      if (along <= 4) return;
+      var across = Math.abs(d[0] ? y : x);
+      var score = along + across*2.2;
+      if (score < bs) { bs = score; best = el; }
+    });
+    if (best) { best.focus(); best.scrollIntoView({block:'nearest'}); }
+    e.preventDefault();
+  });
+
+  /* lueur qui suit le doigt ou la souris sur chaque carte */
+  tiles.forEach(function(t){
+    t.addEventListener('pointermove', function(e){
+      var r = t.getBoundingClientRect();
+      t.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+      t.style.setProperty('--my', (e.clientY - r.top) + 'px');
+    });
+  });
+
+  /* ---------- date, heure ---------- */
+  function hhmm(d){ return d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}); }
+  function horloge(){
+    var d = new Date(), h = d.getHours();
+    $('#salut').textContent = h < 5 ? 'Bonne nuit' : h < 12 ? 'Bonjour' : h < 18 ? 'Bon après-midi' : h < 22 ? 'Bonsoir' : 'Bonne nuit';
+    var j = d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+    $('#date').textContent = j.charAt(0).toUpperCase() + j.slice(1);
+    $('#heure').textContent = hhmm(d);
+    $('#heure').setAttribute('datetime', d.toISOString());
+  }
+
+  /* ---------- le ciel ---------- */
+  var SR = [8.4,8.0,7.3,7.4,6.6,6.1,6.3,7.0,7.8,8.5,8.0,8.5];     /* lever approximatif par mois, heure locale */
+  var SS = [17.6,18.4,19.2,21.1,21.8,22.2,22.0,21.3,20.3,19.3,17.6,17.3];
+  var lever = null, coucher = null;      /* minutes depuis minuit */
+  function minutes(d){ return d.getHours()*60 + d.getMinutes(); }
+  function reperes(){
+    if (lever !== null) return;
+    var m = new Date().getMonth();
+    lever = Math.round(SR[m]*60); coucher = Math.round(SS[m]*60);
+  }
+  function ciel(){
+    reperes();
+    var n = minutes(new Date());
+    var forced = (qs('test') || '').split(',');
+    var c = n < lever - 45 ? 'nuit' : n < lever + 75 ? 'aube' : n < coucher - 75 ? 'jour' : n < coucher + 45 ? 'crepuscule' : 'nuit';
+    ['nuit','aube','jour','crepuscule'].forEach(function(k){ if (forced.indexOf(k) >= 0) c = k; });
+    root.setAttribute('data-ciel', c);
+    /* position du soleil ou de la lune sur son arc */
+    var x, y, jourEntier = (c !== 'nuit');
+    if (jourEntier) { var p = Math.min(1, Math.max(0, (n - (lever-30)) / ((coucher+30) - (lever-30)))); x = 8 + 84*p; y = 62 - 48*Math.sin(Math.PI*p); }
+    else { var t = n >= coucher ? n - coucher : n + 1440 - coucher, L = 1440 - (coucher - lever); var q = Math.min(1, Math.max(0, t / L)); x = 10 + 80*q; y = 60 - 42*Math.sin(Math.PI*q); }
+    if (forced.indexOf('nuit') >= 0 && jourEntier === false && qs('test')) { x = 72; y = 22; }
+    var o = $('#orb'); o.style.setProperty('--ox', x.toFixed(1)); o.style.setProperty('--oy', y.toFixed(1));
+  }
+
+  /* ---------- la météo (Open-Meteo, gratuit, sans compte) ---------- */
+  var LAT = 48.8566, LON = 2.3522;           /* exemple : Paris ; mets les coordonnées de ta ville (arrondies) */
+  var CODES = {
+    0:['Ciel dégagé','clair'],1:['Plutôt dégagé','clair'],2:['Quelques nuages','nuageux'],3:['Couvert','nuageux'],
+    45:['Brouillard','brume'],48:['Brouillard givrant','brume'],
+    51:['Bruine légère','pluie'],53:['Bruine','pluie'],55:['Bruine dense','pluie'],56:['Bruine verglaçante','pluie'],57:['Bruine verglaçante','pluie'],
+    61:['Pluie faible','pluie'],63:['Pluie','pluie'],65:['Pluie forte','pluie'],66:['Pluie verglaçante','pluie'],67:['Pluie verglaçante','pluie'],
+    71:['Neige faible','neige'],73:['Neige','neige'],75:['Neige forte','neige'],77:['Grésil','neige'],
+    80:['Averses','pluie'],81:['Averses','pluie'],82:['Fortes averses','pluie'],85:['Averses de neige','neige'],86:['Averses de neige','neige'],
+    95:['Orage','orage'],96:['Orage et grêle','orage'],99:['Orage et grêle','orage']
+  };
+  function info(code){ return CODES[code] || ['Météo inconnue','clair']; }
+  var SOL = '<circle cx="24" cy="24" r="9" fill="#FFD36B"/><g stroke="#FFD36B" stroke-width="3" stroke-linecap="round"><path d="M24 5v5M24 38v5M5 24h5M38 24h5M10.5 10.5l3.5 3.5M34 34l3.5 3.5M37.5 10.5L34 14M14 34l-3.5 3.5"/></g>';
+  var LUN = '<path d="M31 6a17 17 0 1 0 11 29A14 14 0 0 1 31 6z" fill="#E8ECFF"/>';
+  var NUA = '<path d="M14 38c-6 0-9-7-3.5-10C10.5 20 20 17 24 23c3-6 14-4 14 5 5 0 7 10-1 10z" fill="#FFFFFF"/>';
+  var NUAG = '<path d="M14 38c-6 0-9-7-3.5-10C10.5 20 20 17 24 23c3-6 14-4 14 5 5 0 7 10-1 10z" fill="#C9D2E3"/>';
+  function icone(code, jour){
+    var k = info(code)[1], s = jour ? SOL : LUN;
+    if (code === 2) s = (jour ? '<g transform="translate(-4 -5) scale(.8)">' + SOL + '</g>' : '<g transform="translate(-4 -5) scale(.8)">' + LUN + '</g>') + '<g transform="translate(4 4)">' + NUA + '</g>';
+    else if (code === 3) s = NUA;
+    else if (k === 'brume') s = NUAG + '<g stroke="#E5EAF3" stroke-width="3" stroke-linecap="round"><path d="M10 41h28M14 46h20"/></g>';
+    else if (k === 'pluie') s = NUAG + '<g stroke="#7CC4FF" stroke-width="3" stroke-linecap="round"><path d="M16 41l-2 5M24 41l-2 5M32 41l-2 5"/></g>';
+    else if (k === 'neige') s = NUAG + '<g fill="#fff"><circle cx="15" cy="43" r="2"/><circle cx="24" cy="46" r="2"/><circle cx="33" cy="43" r="2"/></g>';
+    else if (k === 'orage') s = NUAG + '<path d="M25 33l-6 9h5l-2 7 9-11h-5l3-5z" fill="#FFD36B"/>';
+    return '<svg viewBox="0 0 48 52" aria-hidden="true">' + s + '</svg>';
+  }
+  function jourCourt(iso){ var d = new Date(iso + 'T12:00:00'); var j = d.toLocaleDateString('fr-FR',{weekday:'short'}).replace('.',''); return j.charAt(0).toUpperCase() + j.slice(1); }
+  function hm(iso){ return iso.slice(11,16); }
+  function vent(v){ return Math.round(v) + ' km/h'; }
+
+  function afficherMeteo(w){
+    var cur = w.current, d = w.daily, i = info(cur.weather_code), kind = i[1];
+    var forced = (qs('test') || '').split(',');
+    ['clair','nuageux','pluie','neige','orage','brume'].forEach(function(k){ if (forced.indexOf(k) >= 0) kind = k; });
+    root.setAttribute('data-meteo', kind);
+    root.setAttribute('data-nuages', cur.weather_code === 0 ? '0' : cur.weather_code <= 2 ? '1' : '2');
+    $('#m-ico').innerHTML = icone(cur.weather_code, !!cur.is_day);
+    $('#m-t').textContent = Math.round(cur.temperature_2m);
+    $('#m-ciel').textContent = i[0];
+    var pluie = d.precipitation_probability_max && d.precipitation_probability_max[0];
+    $('#m-detail').textContent = 'Ressenti ' + Math.round(cur.apparent_temperature) + '°, vent ' + vent(cur.wind_speed_10m) +
+      (pluie !== undefined && pluie !== null ? ', pluie ' + pluie + ' %' : '');
+    var box = $('#jours'); box.textContent = '';
+    for (var n = 1; n <= 3 && n < d.time.length; n++) {
+      var el = document.createElement('div'); el.className = 'jour';
+      el.innerHTML = '<b></b>' + icone(d.weather_code[n], true) + '<span></span>';
+      el.querySelector('b').textContent = n === 1 ? 'Demain' : jourCourt(d.time[n]);
+      var sp = el.querySelector('span'); sp.textContent = Math.round(d.temperature_2m_max[n]) + '°';
+      var mi = document.createElement('i'); mi.textContent = Math.round(d.temperature_2m_min[n]) + '°'; sp.appendChild(mi);
+      box.appendChild(el);
+    }
+    $('#m-lever').textContent = hm(d.sunrise[0]); $('#m-coucher').textContent = hm(d.sunset[0]);
+    var a = d.sunrise[0].slice(11,16).split(':'), b = d.sunset[0].slice(11,16).split(':');
+    lever = +a[0]*60 + +a[1]; coucher = +b[0]*60 + +b[1];
+    $('#meteo').hidden = false;
+    ciel();
+  }
+  function meteo(){
+    var cache = null;
+    try { cache = JSON.parse(lire('meteo') || 'null'); } catch(e){}
+    if (cache && (Date.now() - cache.t) < 600000) { afficherMeteo(cache.w); return; }
+    var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + LAT + '&longitude=' + LON +
+      '&current=temperature_2m,apparent_temperature,weather_code,is_day,wind_speed_10m' +
+      '&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max&timezone=Europe%2FParis&forecast_days=4';
+    fetch(url).then(function(r){ if(!r.ok) throw 0; return r.json(); })
+      .then(function(w){ ecrire('meteo', JSON.stringify({t:Date.now(), w:w})); afficherMeteo(w); })
+      .catch(function(){
+        if (cache) afficherMeteo(cache.w);          /* données un peu anciennes, mieux que rien */
+      });
+  }
+
+  /* ---------- état des services ---------- */
+  function setTile(el, s){
+    el.setAttribute('data-s', s);
+    var tv = root.classList.contains('tv');
+    el.querySelector('.pill b').textContent = s === 'ok' ? 'Disponible' : s === 'off' ? (tv ? 'Indisponible' : 'Pas disponible pour le moment') : 'État inconnu';
+  }
+  function resume(n, maj, eteints){
+    var e = $('#etat'), t = $('#etat-txt'), m = $('#etat-maj');
+    if (n === null){ e.setAttribute('data-s','?'); t.textContent = 'État non disponible'; m.textContent = ''; return; }
+    if (n === 0){ e.setAttribute('data-s','ok'); t.textContent = 'Tout fonctionne' + (eteints ? ' · ' + eteints + (eteints > 1 ? ' éteints' : ' éteint') + ' pour le moment' : ''); }
+    else { e.setAttribute('data-s','warn'); t.textContent = n === 1 ? '1 service est indisponible' : n + ' services sont indisponibles'; }
+    if (maj) { var mn = Math.max(0, Math.round((Date.now()/1000 - maj)/60)); m.textContent = mn < 1 ? 'vérifié à l’instant' : 'vérifié il y a ' + mn + ' min'; }
+  }
+  var dernierEtat = null;
+  function appliquer(j){
+    var off = 0, ete = 0, eteints = j.eteints || [];
+    tiles.forEach(function(el){
+      var v = j.services[el.getAttribute('data-id')];
+      if (eteints.indexOf(el.getAttribute('data-id')) >= 0) {      /* éteint volontairement depuis l'admin : pas une panne */
+        setTile(el,'off'); ete++;
+        el.querySelector('.pill b').textContent = root.classList.contains('tv') ? 'Éteint' : 'Éteint pour le moment';
+      }
+      else if (v === true) setTile(el,'ok');
+      else if (v === false){ setTile(el,'off'); off++; }
+      else setTile(el,'?');
+    });
+    resume(off, j.maj, ete);
+  }
+  function verifier(){
+    fetch('etat.json?' + Date.now(), {cache:'no-store'})
+      .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+      .then(function(j){
+        if ((Date.now()/1000 - j.maj) > 240) throw 0;
+        dernierEtat = j; appliquer(j);
+      })
+      .catch(function(){
+        tiles.forEach(function(el){ setTile(el,'?'); }); resume(null);
+      });
+  }
+
+  poserTV(detecterTV());
+  horloge(); ciel(); verifier(); meteo();
+  setInterval(function(){ horloge(); ciel(); }, 60000);
+  setInterval(verifier, 60000);
+  setInterval(meteo, 600000);
+})();
+</script>
+</body>
+</html>

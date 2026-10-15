@@ -1,0 +1,15 @@
+services:
+  ntfy:
+    image: binwiederhier/ntfy
+    container_name: ntfy
+    command: serve
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Paris
+      NTFY_BASE_URL: http://notif.lan
+      NTFY_CACHE_FILE: /var/cache/ntfy/cache.db
+      NTFY_BEHIND_PROXY: "true"
+    volumes:
+      - ./cache:/var/cache/ntfy
+    ports:
+      - "8089:80"

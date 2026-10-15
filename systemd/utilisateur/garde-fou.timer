@@ -1,0 +1,12 @@
+[Unit]
+Description=Lance le garde-fou des conteneurs toutes les 2 minutes
+
+[Timer]
+# 5 min après le démarrage : Docker a le temps de relancer lui-même ses conteneurs.
+OnBootSec=5min
+OnUnitActiveSec=2min
+AccuracySec=10s
+Persistent=false
+
+[Install]
+WantedBy=timers.target

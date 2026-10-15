@@ -1,0 +1,11 @@
+[Unit]
+Description=Sauvegarde hebdomadaire du homelab vers la tour
+After=network-online.target
+
+[Service]
+Environment=HOME=/root
+Environment=HOME=/root
+Type=oneshot
+ExecStart=/usr/local/sbin/homelab-backup.sh
+Nice=10
+IOSchedulingClass=idle

@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mode d'emploi de la maison</title>
+<style>
+:root{
+  --paper:#FAFBFD; --ink:#12203A; --muted:#4A5B76; --line:#CBD5E1; --accent:#2F6BDB; --note:#EAF1FD;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{--paper:#0F1623; --ink:#EAF0F8; --muted:#A5B4CA; --line:#26324A; --accent:#8FB1FF; --note:#16223A}
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:1.15rem;line-height:1.65;
+  padding:clamp(1.25rem,4vw,3rem) clamp(1rem,4vw,2rem) 4rem}
+.wrap{max-width:46rem;margin:0 auto}
+.retour{display:inline-block;margin-bottom:1.5rem;color:var(--ink);font-weight:600;text-underline-offset:.2em}
+h1{font-family:var(--serif);font-weight:600;font-size:clamp(2.2rem,6vw,3.4rem);line-height:1.08;letter-spacing:-.02em;margin:0 0 .6rem}
+.intro{color:var(--muted);font-size:1.2rem;margin:0 0 2rem}
+nav{border:1px solid var(--line);border-radius:14px;padding:1rem 1.4rem;margin-bottom:2.5rem}
+nav p{margin:0 0 .4rem;font-weight:700}
+nav ol{margin:0;padding-left:1.3rem}
+nav a{color:var(--ink);text-underline-offset:.2em}
+h2{font-family:var(--serif);font-weight:600;font-size:1.8rem;line-height:1.2;margin:3rem 0 .6rem;padding-top:1.5rem;border-top:1px solid var(--line)}
+h3{font-size:1.15rem;margin:1.6rem 0 .3rem}
+p,li{max-width:62ch}
+ol.pas{padding-left:1.4rem}
+ol.pas li{margin:.5rem 0}
+.note{background:var(--note);border-left:4px solid var(--accent);padding:.8rem 1.1rem;border-radius:0 10px 10px 0;margin:1.2rem 0}
+.note p{margin:0}
+kbd,.adr{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.95em;background:var(--note);padding:.1em .45em;border-radius:6px;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;margin:1rem 0}
+th,td{text-align:left;padding:.6rem .7rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.95rem;color:var(--muted);font-weight:600}
+a:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:4px}
+.print{margin-top:3rem;color:var(--muted);font-size:1rem}
+@media print{
+  body{background:#fff;color:#000;font-size:11.5pt;padding:0}
+  .retour,.print,nav{display:none}
+  h2{break-after:avoid;border-top:1px solid #999}
+  .note{background:#f1f1f1;border-color:#555}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="retour" href="index.html">Retour à la page d'accueil</a>
+  <h1>Mode d'emploi de la maison</h1>
+  <p class="intro">Tout ce qu'il faut pour regarder un film, écouter de la musique ou retrouver une photo, depuis le téléphone, la tablette ou l'ordinateur.</p>
+
+  <nav aria-label="Sommaire">
+    <p>Sommaire</p>
+    <ol>
+      <li><a href="#debut">Pour commencer</a></li>
+      <li><a href="#films">Films et séries</a></li>
+      <li><a href="#musique">Musique</a></li>
+      <li><a href="#photos">Photos</a></li>
+      <li><a href="#cloud">Cloud et documents</a></li>
+      <li><a href="#pdf">Outils PDF</a></li>
+      <li><a href="#videos">Télécharger une vidéo</a></li>
+      <li><a href="#maison">Lumières de la maison</a></li>
+      <li><a href="#tele">Sur la tablette et sur la télé</a></li>
+      <li><a href="#dehors">Depuis l'extérieur de la maison</a></li>
+      <li><a href="#panne">Si ça ne marche pas</a></li>
+    </ol>
+  </nav>
+
+  <h2 id="debut">Pour commencer</h2>
+  <p>Tout se trouve sur une seule page d'accueil. Dans le navigateur (Chrome, Safari, Firefox), tape cette adresse :</p>
+  <p><span class="adr">home.lan</span></p>
+  <p>Tu vois de grandes tuiles colorées. Un clic sur une tuile ouvre le service. En haut à droite, la pastille te dit si tout fonctionne. Ajoute la page à tes favoris pour la retrouver en un geste.</p>
+  <div class="note"><p>Il faut être connecté au Wi-Fi de la maison. Pour l'extérieur, voir la partie « Depuis l'extérieur de la maison ».</p></div>
+  <p>Chaque personne a son propre compte (nom et mot de passe donnés par Alex). Coche « Se souvenir de moi » : tu n'auras à te connecter qu'une fois par appareil.</p>
+
+  <h2 id="films">Films et séries</h2>
+  <ol class="pas">
+    <li>Sur la page d'accueil, clique sur <strong>Films et séries</strong>.</li>
+    <li>Connecte-toi avec ton nom et ton mot de passe.</li>
+    <li>Choisis un film ou une série, puis appuie sur le bouton de lecture.</li>
+  </ol>
+  <p>Le film reprend là où tu l'avais laissé. Tu peux aussi installer l'application <strong>Jellyfin</strong> sur la télé, la tablette ou le téléphone : à la première ouverture, saisis l'adresse <span class="adr">http://films.lan</span>.</p>
+
+  <h2 id="musique">Musique</h2>
+  <ol class="pas">
+    <li>Clique sur <strong>Musique</strong>.</li>
+    <li>Connecte-toi, puis cherche un artiste, un album ou un titre.</li>
+    <li>Appuie sur un titre pour l'écouter. Tu peux créer tes propres listes.</li>
+  </ol>
+  <p>Sur téléphone, l'application <strong>Symfonium</strong> (Android) ou <strong>Substreamer</strong> (iPhone) fonctionne très bien. Adresse du serveur : <span class="adr">http://musique.lan</span>.</p>
+
+  <h2 id="photos">Photos</h2>
+  <p>C'est ici que sont rangées les photos de la famille, classées par date et par personne.</p>
+  <ol class="pas">
+    <li>Clique sur <strong>Photos</strong> et connecte-toi.</li>
+    <li>Fais défiler pour remonter dans le temps, ou utilise la loupe pour chercher (un lieu, une personne, « plage », « Noël »…).</li>
+    <li>Pour ajouter des photos : bouton <strong>Téléverser</strong> en haut, puis choisis-les.</li>
+  </ol>
+  <p>Avec l'application <strong>Immich</strong> sur le téléphone, les nouvelles photos peuvent être envoyées toutes seules à la maison. Demande à Alex de l'activer.</p>
+
+  <h2 id="cloud">Cloud et documents</h2>
+  <h3>Cloud : tes fichiers, partout</h3>
+  <p>Comme un Drive ou un Dropbox, mais à la maison. Clique sur <strong>Cloud</strong>, connecte-toi, puis glisse un fichier dans la fenêtre pour l'envoyer. Pour partager un fichier, clique sur les trois points à côté de son nom, puis sur « Partager ».</p>
+  <h3>Documents : les papiers scannés</h3>
+  <p>Clique sur <strong>Documents</strong> pour retrouver une facture, un contrat ou une lettre. Utilise la barre de recherche en haut : tape un mot du document, il sera trouvé même dans un scan. Pour en ajouter un, glisse le fichier dans la page.</p>
+
+  <h2 id="pdf">Outils PDF</h2>
+  <p>Clique sur <strong>Outils PDF</strong>. Tu peux fusionner plusieurs PDF en un seul, en découper un, alléger un fichier trop lourd, faire pivoter des pages ou remplir un formulaire. Choisis l'outil, dépose ton fichier, puis télécharge le résultat. Rien ne sort de la maison.</p>
+
+  <h2 id="videos">Télécharger une vidéo</h2>
+  <ol class="pas">
+    <li>Copie l'adresse de la vidéo depuis le site où tu l'as trouvée.</li>
+    <li>Clique sur <strong>Télécharger une vidéo</strong>, colle l'adresse dans la case et valide.</li>
+    <li>Dans la case <strong>Dossier</strong>, choisis où ranger la vidéo : <em>vod</em> pour une vidéo en vrac, <em>cuisine</em> pour une recette, <em>tutos</em> pour un cours, <em>enfants</em>, <em>concerts</em>, <em>documentaires</em>… Tu peux aussi taper un nouveau nom de dossier.</li>
+    <li>Quand la ligne indique que c'est terminé, la vidéo apparaît dans <strong>Films et séries</strong>, dans la bibliothèque qui porte le nom du dossier choisi.</li>
+  </ol>
+  <div class="note"><p>Pas sûr du dossier ? Choisis <em>a-trier</em> : Alex la rangera plus tard.</p></div>
+
+  <h2 id="maison">Lumières de la maison</h2>
+  <p>Les lumières, prises et volets se commandent à la voix ou avec l'application de la maison. Cette partie est gérée par Alex : s'il manque quelque chose, dis-le-lui.</p>
+  <p>Si Alex a relié Alexa, demande à voix haute, par exemple : « Alexa, allume le salon ».</p>
+
+  <h2 id="tele">Sur la tablette et sur la télé</h2>
+  <p>La page d'accueil s'adapte à l'écran : sur une tablette, les tuiles sont plus grandes et se touchent du doigt.</p>
+  <p>Sur la télé, ouvre le navigateur et tape <span class="adr">home.lan</span>, puis clique en bas sur <strong>Mode télé</strong>. Les tuiles deviennent très grandes et tu te déplaces avec les <strong>flèches de la télécommande</strong>. Appuie sur <strong>OK</strong> pour ouvrir. Pour revenir à l'affichage normal, descends sur le bouton « Quitter le mode télé » avec les flèches.</p>
+  <div class="note"><p>Sur un nouvel appareil, si le navigateur dit « connexion non sécurisée » sur une adresse en https, ouvre <a href="certificat.html">cette page</a> et suis les étapes de ton appareil. On ne le fait qu'une fois.</p></div>
+
+  <h2 id="dehors">Depuis l'extérieur de la maison</h2>
+  <p>En vacances ou en déplacement, tout reste accessible grâce à l'application <strong>Tailscale</strong> (déjà installée sur les appareils prévus pour ça).</p>
+  <ol class="pas">
+    <li>Ouvre l'application Tailscale et vérifie que l'interrupteur est sur « connecté ».</li>
+    <li>Ouvre ensuite le navigateur et tape <span class="adr">home.lan</span>.</li>
+  </ol>
+  <p>Quand tu rentres, tu peux laisser Tailscale allumé ou l'éteindre : les deux marchent.</p>
+
+  <h2 id="panne">Si ça ne marche pas</h2>
+  <table>
+    <thead><tr><th>Ce que tu vois</th><th>Ce qu'il faut faire</th></tr></thead>
+    <tbody>
+      <tr><td>La page <span class="adr">home.lan</span> ne s'ouvre pas</td><td>Vérifie que tu es sur le Wi-Fi de la maison (ou Tailscale allumé si tu es dehors). Essaie ensuite de couper et rallumer le Wi-Fi du téléphone.</td></tr>
+      <tr><td>Une tuile est grisée avec « Pas disponible pour le moment »</td><td>Le service redémarre peut-être. Attends deux minutes, puis recharge la page. Si c'est toujours grisé, préviens Alex.</td></tr>
+      <tr><td>« État non disponible » en haut à droite</td><td>Ce n'est pas grave : la page n'arrive pas à vérifier l'état, mais les services peuvent marcher. Essaie d'ouvrir une tuile.</td></tr>
+      <tr><td>Mot de passe oublié</td><td>Demande à Alex de le changer. Il n'y a aucune perte de fichiers.</td></tr>
+      <tr><td>Un film se coupe ou saccade</td><td>Ferme les autres vidéos en cours sur la maison, ou essaie en Wi-Fi plus proche de la box.</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><p>Rien de ce que tu fais ici ne peut casser la maison. En cas de doute, ferme la page et rouvre <span class="adr">home.lan</span>.</p></div>
+
+  <p class="print">Pour imprimer ce guide : menu du navigateur, puis « Imprimer ». Seul le contenu s'imprime, sans les boutons.</p>
+</div>
+</body>
+</html>

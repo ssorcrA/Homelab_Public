@@ -1,0 +1,24 @@
+# Secrets et données locales : ne jamais publier
+.env
+*.env
+!*.env.example
+*.pem
+*.key
+*.crt
+*.db
+*.sqlite*
+*.log
+*.avant*
+*.dernier-bon
+__pycache__/
+# Fichiers générés à l'exécution
+caddy/pages/*/etat.json
+caddy/pages/admin/sauvegardes.json
+caddy/pages/home/ca-info.json
+caddy/pages/home/maison-ca*
+# Dossiers de données des services
+*/data/
+*/config/
+*/db/
+*/library/
+*/postgres/

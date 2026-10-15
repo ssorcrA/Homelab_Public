@@ -1,0 +1,10 @@
+services:
+  kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: kuma
+    restart: unless-stopped
+    environment:
+      UPTIME_KUMA_HOST: 127.0.0.1
+    network_mode: host
+    volumes:
+      - ./data:/app/data

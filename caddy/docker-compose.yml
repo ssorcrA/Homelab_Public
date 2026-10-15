@@ -1,0 +1,11 @@
+services:
+  caddy:
+    image: caddy:2
+    container_name: caddy
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - .:/etc/caddy:ro
+      - ./pages:/srv/pages:ro
+      - ./data:/data
+      - ./config:/config

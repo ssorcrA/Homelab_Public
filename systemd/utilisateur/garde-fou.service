@@ -1,0 +1,7 @@
+[Unit]
+Description=Garde-fou des conteneurs du homelab (voir ~/homelab/CHANGELOG.md)
+
+[Service]
+Type=oneshot
+ExecStart=%h/homelab/garde-fou.sh
+TimeoutStartSec=5min

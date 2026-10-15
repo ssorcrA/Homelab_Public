@@ -1,0 +1,17 @@
+# Gestionnaire de fichiers web (File Browser), étape 6b du 14/10/2026.
+# Accès : http(s)://fichiers.lan (et fichiers.exemple.duckdns.org) via Caddy ; port local seulement.
+# Retour en arrière : docker compose down (les fichiers de ~/media ne sont pas touchés).
+services:
+  fichiers:
+    image: filebrowser/filebrowser:v2.63.23
+    container_name: fichiers
+    restart: unless-stopped
+    user: "1000:1000"
+    ports:
+      - "127.0.0.1:8097:80"
+    environment:
+      TZ: Europe/Paris
+    volumes:
+      - /home/alex/media:/srv
+      - ./config:/config
+      - ./database:/database

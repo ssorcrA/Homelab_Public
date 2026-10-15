@@ -1,0 +1,12 @@
+[Unit]
+Description=Mise à jour quotidienne de exemple.duckdns.org
+
+[Timer]
+# Une fois par jour (heure tirée au hasard dans l'heure), et 3 min après chaque démarrage.
+OnCalendar=daily
+RandomizedDelaySec=1h
+OnBootSec=3min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,861 @@
+<!doctype html>
+<html lang="fr" data-ciel="nuit">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Homelab</title>
+<meta name="theme-color" content="#0b1130">
+<style>
+@font-face{font-family:"Bricolage Grotesque";font-style:normal;font-weight:200 800;font-display:swap;
+  src:url(../fonts/bricolage-latin.woff2) format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Bricolage Grotesque";font-style:normal;font-weight:200 800;font-display:swap;
+  src:url(../fonts/bricolage-latin-ext.woff2) format("woff2");
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+
+:root{
+  --font:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --ink:#F3F6FF; --mut:rgba(243,246,255,.68); --panel:rgba(10,17,44,.72); --panel2:rgba(255,255,255,.06); --line:rgba(255,255,255,.13);
+  --ok:#4ade80; --bad:#f87171; --warn:#fbbf24; --idle:#8b97b0; --accent:#6d8dff; --accent2:#4c6ef5;
+  --ease:cubic-bezier(.2,.7,.2,1);
+  --s1:#070b25; --s2:#141c4a; --s3:#2a2f68; --orb:#f3f6ff; --orb2:rgba(190,205,255,.3);
+}
+html[data-ciel="aube"]{--s1:#2a2760; --s2:#9a4f86; --s3:#ffb27a; --orb:#fff0d2; --orb2:rgba(255,170,110,.55)}
+html[data-ciel="jour"]{--s1:#175aae; --s2:#3a89d8; --s3:#9fd0f3; --orb:#ffe27a; --orb2:rgba(255,205,90,.42)}
+html[data-ciel="crepuscule"]{--s1:#27205a; --s2:#b04773; --s3:#ff9b5c; --orb:#ffe3c4; --orb2:rgba(255,140,80,.55)}
+*{box-sizing:border-box}
+html{background:#0b1130;-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:var(--font);font-weight:430;line-height:1.45;font-variant-numeric:tabular-nums;
+  padding:clamp(1rem,3vw,2.5rem) clamp(1rem,3vw,2.5rem) 3rem}
+a{color:inherit}
+.wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto}
+
+/* ciel discret, le même que la page d'accueil */
+.sky{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.sky-base{position:absolute;inset:0;background:linear-gradient(180deg,var(--s1),var(--s2) 52%,var(--s3))}
+.sky::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,8,24,.25),rgba(4,8,24,.62))}
+.orb{position:absolute;left:calc(var(--ox,70)*1%);top:calc(var(--oy,28)*1%);width:min(26vmin,230px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;
+  background:radial-gradient(circle,var(--orb) 0 22%,var(--orb2) 27%,transparent 68%)}
+.etoiles{position:absolute;inset:0;opacity:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cg fill='white'%3E%3Ccircle cx='20' cy='40' r='1.4'/%3E%3Ccircle cx='80' cy='120' r='1'/%3E%3Ccircle cx='140' cy='30' r='1.6'/%3E%3Ccircle cx='200' cy='90' r='1'/%3E%3Ccircle cx='260' cy='20' r='1.3'/%3E%3Ccircle cx='300' cy='150' r='1'/%3E%3Ccircle cx='40' cy='210' r='1.2'/%3E%3Ccircle cx='110' cy='260' r='1'/%3E%3Ccircle cx='180' cy='190' r='1.5'/%3E%3Ccircle cx='240' cy='280' r='1'/%3E%3Ccircle cx='290' cy='230' r='1.2'/%3E%3Ccircle cx='60' cy='300' r='1.1'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:320px 320px;animation:scintille 7s ease-in-out infinite alternate}
+html[data-ciel="nuit"] .etoiles{opacity:.85}
+html[data-ciel="aube"] .etoiles,html[data-ciel="crepuscule"] .etoiles{opacity:.25}
+@keyframes scintille{from{filter:brightness(.6)}to{filter:brightness(1.4)}}
+
+/* en-tête */
+header{display:flex;flex-wrap:wrap;gap:1rem 2rem;align-items:flex-end;justify-content:space-between;margin-bottom:1.8rem}
+h1{margin:0;font-weight:800;font-size:clamp(2.6rem,6vw,4.2rem);line-height:.95;letter-spacing:-.035em;font-variation-settings:"wdth" 92}
+.sub{margin:.55rem 0 0;color:var(--mut);font-size:1.02rem}
+.bilan{display:flex;align-items:center;gap:.9rem;padding:.7rem 1.2rem .7rem .8rem;border-radius:22px;background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.bilan .anneau{width:3.3rem;height:3.3rem;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.08)}
+.bilan .anneau i{width:1rem;height:1rem;border-radius:50%;background:var(--idle)}
+.bilan[data-s=ok] .anneau{background:rgba(74,222,128,.16)}
+.bilan[data-s=ok] .anneau i{background:var(--ok);box-shadow:0 0 0 6px rgba(74,222,128,.22)}
+.bilan[data-s=warn] .anneau{background:rgba(248,113,113,.16)}
+.bilan[data-s=warn] .anneau i{background:var(--bad);box-shadow:0 0 0 6px rgba(248,113,113,.22)}
+.bilan strong{display:block;font-size:2rem;font-weight:780;letter-spacing:-.03em;line-height:1}
+.bilan span{color:var(--mut);font-size:.95rem}
+
+h2.t{display:flex;align-items:baseline;gap:.7rem;margin:2.2rem 0 .8rem;font-size:1.2rem;font-weight:700;letter-spacing:-.01em}
+h2.t small{font-weight:450;color:var(--mut);font-size:.92rem}
+h2.t::after{content:"";flex:1;height:1px;align-self:center;background:linear-gradient(90deg,rgba(255,255,255,.3),transparent)}
+h2.t[hidden]{display:none}
+
+.carte-v{background:var(--panel);border:1px solid var(--line);border-radius:22px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 16px 40px -26px rgba(0,0,0,.8)}
+
+/* boutons : un seul jeu pour toute la page */
+.btn{appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:.55rem;min-height:2.8rem;padding:.55rem 1.2rem;border-radius:14px;
+  font:inherit;font-weight:650;color:var(--ink);text-decoration:none;cursor:pointer;background:var(--panel2);border:1px solid var(--line);
+  transition:transform .25s var(--ease),background .25s,box-shadow .25s,border-color .25s,filter .2s}
+.btn:hover{transform:translateY(-2px);background:rgba(255,255,255,.12)}
+.btn:active{transform:scale(.97)}
+.btn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.btn:disabled,.btn[aria-disabled=true]{opacity:.5;cursor:default;transform:none;pointer-events:none}
+.btn svg{width:1.15rem;height:1.15rem;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;color:#fff;box-shadow:0 10px 24px -12px rgba(76,110,245,.9)}
+.btn.primary:hover{filter:brightness(1.08);box-shadow:0 14px 28px -12px rgba(76,110,245,1)}
+.btn.danger{color:#ffb4b4;border-color:rgba(248,113,113,.45);background:rgba(248,113,113,.1)}
+.btn.danger:hover{background:rgba(248,113,113,.2)}
+.btn.confirm{background:var(--warn);border-color:var(--warn);color:#241700;animation:bat .9s ease-in-out infinite alternate}
+.btn.danger.confirm{background:var(--bad);border-color:var(--bad);color:#2a0606}
+@keyframes bat{from{box-shadow:0 0 0 0 rgba(251,191,36,.55)}to{box-shadow:0 0 0 7px rgba(251,191,36,0)}}
+.btn.charge::before{content:"";width:1rem;height:1rem;border-radius:50%;border:2.5px solid currentColor;border-right-color:transparent;animation:tour 0.8s linear infinite}
+@keyframes tour{to{transform:rotate(360deg)}}
+.btn.petit{min-height:2.3rem;padding:.3rem .9rem;border-radius:11px;font-size:.93rem}
+
+/* le portable */
+.mesures{display:grid;gap:.8rem;grid-template-columns:repeat(2,1fr)}
+@media (min-width:700px){.mesures{grid-template-columns:repeat(3,1fr)}}
+@media (min-width:1000px){.mesures{grid-template-columns:repeat(6,1fr)}}
+.m{position:relative;display:grid;grid-template-columns:1fr auto;grid-template-rows:auto 1fr auto;gap:.1rem .5rem;padding:.9rem 1rem .85rem;border-radius:20px;
+  background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);transition:transform .3s var(--ease),border-color .3s}
+.m:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.28)}
+.m .l{grid-column:1/-1;color:var(--mut);font-size:.9rem}
+.m .v{font-size:2rem;font-weight:760;letter-spacing:-.03em;line-height:1.1;align-self:center}
+.m .v small{font-size:.95rem;font-weight:500;color:var(--mut);margin-left:.2rem;letter-spacing:0}
+.m .ring{width:3.1rem;height:3.1rem;transform:rotate(-90deg);align-self:center}
+.m .ring circle{fill:none;stroke-width:4.5;stroke-linecap:round}
+.m .ring .fond{stroke:rgba(255,255,255,.12)}
+.m .ring .val{stroke:var(--ok);stroke-dasharray:97.4;stroke-dashoffset:97.4;transition:stroke-dashoffset .9s var(--ease),stroke .3s}
+.m .d{grid-column:1/-1;color:var(--mut);font-size:.84rem;margin-top:.35rem;min-height:1.2em;line-height:1.3}
+.m[data-n=warn] .ring .val{stroke:var(--warn)} .m[data-n=bad] .ring .val{stroke:var(--bad)}
+.m[data-n=warn] .v{color:var(--warn)} .m[data-n=bad] .v{color:var(--bad)}
+
+.tour{display:flex;flex-wrap:wrap;gap:.6rem .8rem;align-items:center;margin-top:.9rem;padding:.7rem .8rem;border-radius:20px;background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.puce{display:inline-flex;align-items:center;gap:.5rem;padding:.35rem .85rem;border-radius:999px;font-size:.93rem;font-weight:550;background:var(--panel2);border:1px solid var(--line)}
+.puce i{width:.6rem;height:.6rem;border-radius:50%;background:var(--idle)}
+.puce[data-s=ok] i{background:var(--ok);box-shadow:0 0 0 3px rgba(74,222,128,.25)}
+.puce[data-s=off] i{background:var(--bad)}
+.tour .sep{flex:1}
+.msg{flex-basis:100%;margin:0;font-size:.92rem;color:var(--mut)}
+.msg[data-s=bad]{color:var(--bad)} .msg[data-s=ok]{color:var(--ok)}
+
+/* appareils */
+.devs{display:grid;gap:.75rem;grid-template-columns:repeat(auto-fill,minmax(10.5rem,1fr))}
+.dev{appearance:none;font:inherit;color:inherit;text-align:left;position:relative;display:flex;flex-direction:column;gap:.35rem;min-height:7rem;padding:.9rem 1rem;border-radius:20px;
+  border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);cursor:pointer;
+  transition:transform .3s var(--ease),background .3s,box-shadow .3s,border-color .3s}
+.dev:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.3)}
+.dev:active{transform:scale(.97)}
+.dev:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.dev svg{width:1.7rem;height:1.7rem;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.dev b{font-size:1.02rem;line-height:1.2;font-weight:680}
+.dev small{display:block;color:var(--mut);font-size:.84rem;font-weight:430}
+.dev .etat-d{margin-top:auto;font-weight:650;font-size:.95rem}
+.dev .val{font-size:1.45rem;font-weight:720;letter-spacing:-.02em;line-height:1.1}
+.dev[data-on="1"]{background:linear-gradient(145deg,#fde68a,#fbbf24);border-color:#fbbf24;color:#2b1c00;box-shadow:0 14px 30px -14px rgba(251,191,36,.8)}
+.dev[data-on="1"] small{color:inherit;opacity:.78}
+.dev[data-ro="1"]{cursor:default}
+.dev[data-ro="1"]:hover{transform:none;border-color:var(--line)}
+.dev[data-off="1"]{opacity:.5}
+.interr{position:absolute;right:.8rem;top:.85rem;width:2.3rem;height:1.35rem;border-radius:999px;background:rgba(255,255,255,.18);transition:background .3s}
+.interr::after{content:"";position:absolute;left:.18rem;top:.18rem;width:.99rem;height:.99rem;border-radius:50%;background:#fff;transition:transform .3s var(--ease)}
+.dev[data-on="1"] .interr{background:rgba(43,28,0,.4)}
+.dev[data-on="1"] .interr::after{transform:translateX(.95rem)}
+.dev[data-ro="1"] .interr{display:none}
+
+/* sauvegardes */
+.sauv{overflow:hidden}
+.sauv-haut{display:flex;flex-wrap:wrap;gap:1rem 1.5rem;align-items:center;justify-content:space-between;padding:1.1rem 1.25rem}
+.sauv-haut p{margin:0}
+.sauv-haut .gros{font-weight:700;font-size:1.12rem}
+.sauv-haut .petit{color:var(--mut);font-size:.93rem;margin-top:.2rem}
+.sauv-haut[data-s=ok] .gros{color:var(--ok)} .sauv-haut[data-s=bad] .gros{color:var(--bad)} .sauv-haut[data-s=run] .gros{color:var(--warn)}
+table{width:100%;border-collapse:collapse;font-size:.93rem}
+th,td{text-align:left;padding:.6rem 1.25rem;border-top:1px solid var(--line)}
+th{color:var(--mut);font-weight:500;font-size:.85rem}
+td.r,th.r{text-align:right}
+.vide{padding:1rem 1.25rem;color:var(--mut);border-top:1px solid var(--line);font-size:.93rem}
+.scroll{overflow-x:auto}
+.onglets{display:flex;gap:.4rem;padding:.5rem 1rem 0;border-top:1px solid var(--line)}
+.onglet{appearance:none;font:inherit;color:var(--mut);background:none;border:0;border-bottom:2px solid transparent;padding:.7rem .9rem .6rem;cursor:pointer;min-height:2.6rem;transition:color .2s,border-color .2s}
+.onglet:hover{color:var(--ink)}
+.onglet[aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent);font-weight:680}
+.onglet:focus-visible{outline:3px solid #fff;outline-offset:-3px;border-radius:8px}
+.badge{display:inline-block;white-space:nowrap;padding:.12rem .65rem;border-radius:999px;font-size:.85rem;font-weight:650;border:1px solid currentColor}
+.badge[data-r=ok]{color:var(--ok)} .badge[data-r=bad]{color:var(--bad)} .badge[data-r=run]{color:var(--warn)} .badge[data-r=idle]{color:var(--idle)}
+.raccourci .ico-r{width:1.15rem;height:1.15rem;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;justify-self:center;color:var(--mut)}
+.raccourci .stat{color:var(--mut)}
+.raison{display:block;margin-top:.3rem;color:var(--mut);font-size:.85rem;font-weight:450;line-height:1.35;max-width:30rem}
+tr.jr td{padding:0;border-top:0}
+pre.journal{margin:0;padding:.9rem 1.25rem;max-height:20rem;overflow:auto;background:rgba(3,6,20,.7);font:.82rem/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word;border-top:1px solid var(--line)}
+.direct{border-top:1px solid var(--line)}
+.direct h3{margin:0;padding:.7rem 1.25rem 0;font-size:.92rem;font-weight:650;color:var(--warn)}
+.dernier-echec{margin:0;padding:.75rem 1.25rem;border-top:1px solid var(--line);color:var(--bad);font-size:.93rem}
+
+/* outils */
+.cols{display:grid;gap:1rem;grid-template-columns:1fr}
+@media (min-width:860px){.cols{grid-template-columns:1fr 1fr}}
+section.carte{overflow:hidden}
+section.carte h3{margin:0;padding:.95rem 1.25rem;font-size:1.05rem;font-weight:700;border-bottom:1px solid var(--line)}
+section.carte h3 small{font-weight:450;color:var(--mut);margin-left:.5rem;font-size:.9rem}
+.row{display:grid;grid-template-columns:1.1rem 1fr auto;gap:.2rem .85rem;align-items:center;padding:.8rem 1.25rem;color:inherit;text-decoration:none;border-top:1px solid var(--line);transition:background .2s,padding-left .3s var(--ease)}
+section.carte h3 + .row{border-top:0}
+a.row:hover{background:rgba(255,255,255,.07);padding-left:1.5rem}
+.row:focus-visible{outline:3px solid #fff;outline-offset:-3px}
+.led{width:.72rem;height:.72rem;border-radius:50%;background:var(--idle);justify-self:center}
+.row[data-s=ok] .led{background:var(--ok);box-shadow:0 0 0 3px rgba(74,222,128,.25)}
+.row[data-s=off] .led{background:var(--bad);box-shadow:0 0 0 3px rgba(248,113,113,.25)}
+.nom{font-weight:680}
+.nom em{font-style:normal;color:var(--mut);font-weight:450;margin-left:.5rem;font-size:.9rem}
+.desc{grid-column:2;color:var(--mut);font-size:.92rem}
+.stat{grid-row:1;grid-column:3;font-size:.88rem;color:var(--mut);white-space:nowrap}
+.row[data-s=off] .stat{color:var(--bad);font-weight:650} .row[data-s=ok] .stat{color:var(--ok)}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;padding:1rem 1.25rem 1.2rem}
+.chip{display:inline-flex;align-items:center;gap:.5rem;padding:.4rem .9rem;border:1px solid var(--line);border-radius:999px;color:inherit;text-decoration:none;font-size:.95rem;min-height:2.4rem;background:var(--panel2);
+  transition:transform .25s var(--ease),background .2s}
+.chip:hover{background:rgba(255,255,255,.14);transform:translateY(-2px)}
+.chip:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.chip i{width:.55rem;height:.55rem;border-radius:50%;background:var(--idle)}
+.chip[data-s=ok] i{background:var(--ok)} .chip[data-s=off] i{background:var(--bad)}
+
+footer{margin-top:1.6rem;color:var(--mut);font-size:.9rem;display:flex;flex-wrap:wrap;gap:.4rem 1.5rem;justify-content:space-between}
+.apercu{display:none;margin:0 0 1rem;font-size:.9rem;color:#ffe9a8}
+@media (pointer:coarse){.row{padding:.95rem 1.25rem}.chip{min-height:2.7rem}.btn{min-height:3rem}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* ---------- raccords avec le JavaScript actuel ---------- */
+.msg:empty{display:none}
+.btn[data-c="1"]{background:var(--warn);border-color:var(--warn);color:#241700;animation:bat .9s ease-in-out infinite alternate}
+button.lien{appearance:none;display:inline-flex;align-items:center;justify-content:center;min-height:2.3rem;padding:.3rem .9rem;border-radius:11px;font:inherit;font-size:.93rem;font-weight:650;
+  color:var(--ink);background:var(--panel2);border:1px solid var(--line);cursor:pointer}
+button.lien:hover{background:rgba(255,255,255,.12)}
+button.lien:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.dev > span:not(.val){margin-top:auto;font-weight:650;font-size:.95rem}
+.dev .val{overflow-wrap:anywhere}
+dialog#dlg-off,dialog#dlg-on,dialog#dlg-svc{border:1px solid var(--line);border-radius:22px;background:#0d1433;color:var(--ink);padding:1.3rem 1.4rem;max-width:min(26rem,calc(100vw - 2rem));
+  box-shadow:0 30px 60px -20px rgba(0,0,0,.8);font-family:var(--font)}
+dialog#dlg-off::backdrop,dialog#dlg-on::backdrop,dialog#dlg-svc::backdrop{background:rgba(3,6,20,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+dialog#dlg-off p,dialog#dlg-on p,dialog#dlg-svc p{margin:0 0 .6rem}
+dialog#dlg-off .q,dialog#dlg-on .q,dialog#dlg-svc .q{font-weight:700;font-size:1.15rem}
+dialog#dlg-off .d,dialog#dlg-on .d,dialog#dlg-svc .d{color:var(--mut);font-size:.93rem}
+dialog#dlg-off .b,dialog#dlg-on .b,dialog#dlg-svc .b{display:flex;gap:.6rem;justify-content:flex-end;flex-wrap:wrap;margin-top:1.1rem}
+/* services (interrupteurs) */
+.svc-g{margin:1rem 0 .55rem;font-size:.82rem;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+.svc-g:first-child{margin-top:0}
+.dev.svc{min-height:6.2rem}
+.dev.svc small{min-height:1.1em}
+.dev.svc[data-panne="1"]{border-color:var(--bad);box-shadow:0 0 0 1px var(--bad) inset}
+.dev.svc[data-panne="1"] .etat-d{color:var(--bad)}
+.dev.svc[data-cours="1"]{opacity:.6;cursor:progress}
+.dev.svc[data-cours="1"]:hover{transform:none}
+.svc-msg{margin:.6rem 0 0;font-size:.92rem;color:var(--mut)}
+</style>
+</head>
+<body>
+<div class="sky" aria-hidden="true"><div class="sky-base"></div><div class="etoiles"></div><div class="orb" id="orb"></div></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="d-light" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></symbol>
+  <symbol id="d-switch" viewBox="0 0 24 24"><path d="M9 3v5M15 3v5M7 8h10v4a5 5 0 0 1-10 0V8zM12 17v4"/></symbol>
+  <symbol id="d-sensor" viewBox="0 0 24 24"><path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z"/></symbol>
+  <symbol id="d-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="d-cover" viewBox="0 0 24 24"><path d="M4 4h16M6 4v12h12V4M6 8h12M6 12h12M12 16v4"/></symbol>
+  <symbol id="d-fan" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5"/><path d="M12 10.5C12 6 14 3 16.5 4.5S15 10 12 10.5zM13.5 12c4.5 0 7.5 2 6 4.5S14 15 13.5 12zM12 13.5c0 4.5-2 7.5-4.5 6S9 14 12 13.5zM10.5 12C6 12 3 10 4.5 7.5S10 9 10.5 12z"/></symbol>
+  <symbol id="r-video" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 9v6M9 12h6"/></symbol>
+  <symbol id="r-dossier" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 11v5M9.5 13.5h5"/></symbol>
+  <symbol id="r-user" viewBox="0 0 24 24"><circle cx="10" cy="8" r="4"/><path d="M3 20a7 7 0 0 1 14 0M19 8v6M16 11h6"/></symbol>
+  <symbol id="d-other" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="12" cy="12" r="2"/></symbol>
+  <symbol id="b-power" viewBox="0 0 24 24"><path d="M12 3v9M6.3 6.8a8 8 0 1 0 11.4 0"/></symbol>
+  <symbol id="b-save" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+</svg>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Homelab</h1>
+      <p class="sub" id="sub">192.168.1.199, Debian 13</p>
+    </div>
+    <div class="bilan" id="bilan" data-s="?"><span class="anneau"><i></i></span><div><strong id="n">…</strong><span id="n-txt">vérification</span></div></div>
+  </header>
+
+
+  <h2 class="t" style="margin-top:0">Le portable <small id="up"></small></h2>
+  <div class="mesures" id="mesures">
+    <div class="m" id="m-cpu"><div class="l">Processeur</div><div class="v">…</div><svg class="ring" viewBox="0 0 36 36"><circle class="fond" cx="18" cy="18" r="15.5"/><circle class="val" cx="18" cy="18" r="15.5"/></svg><div class="d"></div></div>
+    <div class="m" id="m-ram"><div class="l">Mémoire</div><div class="v">…</div><svg class="ring" viewBox="0 0 36 36"><circle class="fond" cx="18" cy="18" r="15.5"/><circle class="val" cx="18" cy="18" r="15.5"/></svg><div class="d"></div></div>
+    <div class="m" id="m-disk"><div class="l">Disque</div><div class="v">…</div><svg class="ring" viewBox="0 0 36 36"><circle class="fond" cx="18" cy="18" r="15.5"/><circle class="val" cx="18" cy="18" r="15.5"/></svg><div class="d"></div></div>
+    <div class="m" id="m-temp"><div class="l">Température</div><div class="v">…</div><svg class="ring" viewBox="0 0 36 36"><circle class="fond" cx="18" cy="18" r="15.5"/><circle class="val" cx="18" cy="18" r="15.5"/></svg><div class="d"></div></div>
+    <div class="m" id="m-bat"><div class="l">Batterie</div><div class="v">…</div><svg class="ring" viewBox="0 0 36 36"><circle class="fond" cx="18" cy="18" r="15.5"/><circle class="val" cx="18" cy="18" r="15.5"/></svg><div class="d"></div></div>
+    <div class="m" id="m-dock"><div class="l">Conteneurs</div><div class="v">…</div><svg class="ring" viewBox="0 0 36 36"><circle class="fond" cx="18" cy="18" r="15.5"/><circle class="val" cx="18" cy="18" r="15.5"/></svg><div class="d"></div></div>
+  </div>
+
+  <div class="tour" id="tour">
+    <span class="puce" id="p-tour" data-s="?"><i></i><span>Tour : vérification</span></span>
+    <span class="puce" id="p-sys" data-s="?"><i></i><span>Mesures : vérification</span></span>
+    <span class="sep"></span>
+    <button class="btn" type="button" id="tour-btn"><svg aria-hidden="true"><use href="#b-power"/></svg>Allumer la tour</button>
+    <button class="btn danger" type="button" id="tour-off"><svg aria-hidden="true"><use href="#b-power"/></svg>Éteindre la tour</button>
+    <p class="msg" id="tour-msg" role="status"></p>
+  </div>
+  <dialog id="dlg-on" aria-labelledby="dlg-on-q">
+    <p class="q" id="dlg-on-q">Allumer la tour maintenant ?</p>
+    <p class="d">Elle démarre en 1 à 2 minutes après la confirmation.</p>
+    <div class="b">
+      <button class="btn" id="dlg-on-non" type="button" autofocus>Annuler</button>
+      <button class="btn primary" id="dlg-on-oui" type="button">Confirmer</button>
+    </div>
+  </dialog>
+
+  <dialog id="dlg-off" aria-labelledby="dlg-off-q">
+    <p class="q" id="dlg-off-q">Éteindre la tour maintenant ?</p>
+    <p class="d">Elle s'éteint 30 secondes après la confirmation.</p>
+    <div class="b">
+      <button class="btn" id="dlg-off-non" type="button" autofocus>Annuler</button>
+      <button class="btn danger" id="dlg-off-oui" type="button">Confirmer</button>
+    </div>
+  </dialog>
+
+
+  <h2 class="t" id="t-appareils" hidden>Appareils de la maison <small>Home Assistant</small></h2>
+  <div class="devs" id="devs"></div>
+
+  <h2 class="t">Services <small>allumer ou éteindre, avec confirmation</small></h2>
+  <div id="svcs"><p class="svc-msg">Vérification…</p></div>
+  <p class="svc-msg" id="svc-msg" role="status"></p>
+  <dialog id="dlg-svc" aria-labelledby="dlg-svc-q">
+    <p class="q" id="dlg-svc-q"></p>
+    <p class="d" id="dlg-svc-d"></p>
+    <div class="b">
+      <button class="btn" id="dlg-svc-non" type="button" autofocus>Annuler</button>
+      <button class="btn" id="dlg-svc-oui" type="button">Confirmer</button>
+    </div>
+  </dialog>
+
+  <h2 class="t">Sauvegardes</h2>
+  <div class="carte-v sauv">
+    <div class="sauv-haut" id="sauv-haut" data-s="?">
+      <div>
+        <p class="gros" id="sauv-gros">Vérification…</p>
+        <p class="petit" id="sauv-petit"></p>
+      </div>
+      <button class="btn primary" id="sauv-btn" type="button" disabled>Sauvegarder maintenant</button>
+    </div>
+    <p class="dernier-echec" id="sauv-echec" hidden></p>
+    <div class="direct" id="sauv-direct" hidden><h3>Journal en direct</h3><pre class="journal" id="sauv-direct-pre"></pre></div>
+    <div class="onglets" role="tablist">
+      <button class="onglet" id="o-exec" role="tab" aria-selected="true" type="button">Exécutions</button>
+      <button class="onglet" id="o-inst" role="tab" aria-selected="false" type="button">Instantanés restic</button>
+    </div>
+    <div class="scroll" id="exec-zone"></div>
+    <div class="scroll" id="hist-zone" hidden></div>
+  </div>
+
+  <h2 class="t">Outils</h2>
+  <div class="cols">
+    <section class="carte-v carte">
+      <h3>Réseau et accès</h3>
+      <a class="row" href="http://dns.lan" data-id="dns" data-mode="sur"><i class="led"></i><span class="nom">AdGuard Home<em>dns.lan</em></span><span class="stat">…</span><span class="desc">DNS de la maison, blocage des pubs, noms .lan</span></a>
+      <a class="row" href="http://docker.lan" data-id="docker" data-mode="sur"><i class="led"></i><span class="nom">Portainer<em>docker.lan</em></span><span class="stat">…</span><span class="desc">Conteneurs Docker</span></a>
+      <a class="row" href="http://logs.lan" data-id="logs" data-mode="sur"><i class="led"></i><span class="nom">Dozzle<em>logs.lan</em></span><span class="stat">…</span><span class="desc">Journaux des conteneurs en direct</span></a>
+    </section>
+    <section class="carte-v carte">
+      <h3>Surveillance</h3>
+      <a class="row" href="http://status.lan" data-id="status" data-mode="sur"><i class="led"></i><span class="nom">Uptime Kuma<em>status.lan</em></span><span class="stat">…</span><span class="desc">Qui répond, qui est tombé</span></a>
+      <a class="row" href="http://monitor.lan" data-id="monitor" data-mode="sur"><i class="led"></i><span class="nom">Beszel<em>monitor.lan</em></span><span class="stat">…</span><span class="desc">Historique du processeur, de la mémoire, de la température</span></a>
+      <a class="row" href="http://disque.lan" data-id="disque" data-mode="sur"><i class="led"></i><span class="nom">Scrutiny<em>disque.lan</em></span><span class="stat">…</span><span class="desc">Santé du disque NVMe</span></a>
+      <a class="row" href="http://notif.lan" data-id="notif" data-mode="sur"><i class="led"></i><span class="nom">ntfy<em>notif.lan</em></span><span class="stat">…</span><span class="desc">Alertes et sauvegardes (sujet : homelab)</span></a>
+    </section>
+    <section class="carte-v carte">
+      <h3>Jeux et IA<small>à la demande</small></h3>
+      <a class="row" href="http://jeux.lan" data-id="jeux" data-mode="sur"><i class="led"></i><span class="nom">Pelican<em>jeux.lan</em></span><span class="stat">…</span><span class="desc">Panel des serveurs de jeu, Wings sur le port 8081</span></a>
+      <a class="row" href="http://ia.lan" data-id="ia" data-mode="demande"><i class="led"></i><span class="nom">Open WebUI<em>ia.lan</em></span><span class="stat">…</span><span class="desc">IA locale, à lancer avant de s'en servir</span></a>
+    </section>
+    <section class="carte-v carte">
+      <h3>Famille</h3>
+      <div class="chips">
+        <a class="chip" href="http://home.lan"><i></i>Page famille</a>
+        <a class="chip" href="http://films.lan" data-id="films"><i></i>Films</a>
+        <a class="chip" href="http://musique.lan" data-id="musique"><i></i>Musique</a>
+        <a class="chip" href="http://photos.lan" data-id="photos"><i></i>Photos</a>
+        <a class="chip" href="http://cloud.lan" data-id="cloud"><i></i>Cloud</a>
+        <a class="chip" href="http://docs.lan" data-id="docs"><i></i>Documents</a>
+        <a class="chip" href="http://pdf.lan" data-id="pdf"><i></i>PDF</a>
+        <a class="chip" href="http://videos.lan" data-id="videos"><i></i>Vidéos</a>
+        <a class="chip" href="http://domotique.lan" data-id="domotique"><i></i>Domotique</a>
+      </div>
+    </section>
+
+    <section class="carte-v carte">
+      <h3>Raccourcis<small>chaque application demande sa propre connexion</small></h3>
+      <a class="row raccourci" href="http://videos.lan"><svg class="ico-r" aria-hidden="true"><use href="#r-video"/></svg><span class="nom">Ajouter des vidéos<em>MeTube</em></span><span class="stat">ouvrir →</span><span class="desc">Coller un lien : la vidéo arrive dans la bibliothèque Jellyfin « VOD »</span></a>
+      <a class="row raccourci" href="http://fichiers.lan"><svg class="ico-r" aria-hidden="true"><use href="#r-dossier"/></svg><span class="nom">Gérer les fichiers<em>File Browser</em></span><span class="stat">ouvrir →</span><span class="desc">Ajouter, renommer ou supprimer films, séries, musique… (un compte par personne)</span></a>
+      <a class="row raccourci" href="http://films.lan/web/#/dashboard/users"><svg class="ico-r" aria-hidden="true"><use href="#r-user"/></svg><span class="nom">Créer un compte Jellyfin<em>Utilisateurs</em></span><span class="stat">ouvrir →</span><span class="desc">Liste des utilisateurs de Jellyfin, bouton « + » pour en ajouter</span></a>
+      <a class="row raccourci" href="http://musique.lan/app/#/user"><svg class="ico-r" aria-hidden="true"><use href="#r-user"/></svg><span class="nom">Créer un compte Navidrome<em>Utilisateurs</em></span><span class="stat">ouvrir →</span><span class="desc">Liste des utilisateurs de Navidrome, « Créer » pour en ajouter</span></a>
+    </section>
+  </div>
+
+  <footer>
+    <span id="maj">Dernière vérification : en attente</span>
+    <span>Contrôle des services toutes les 30 secondes depuis le portable</span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var $ = function(s){return document.querySelector(s)};
+  var rows = Array.prototype.slice.call(document.querySelectorAll('[data-id]'));
+
+  /* garde le même protocole (http ou https) que la page,
+     et le même domaine : depuis X.exemple.duckdns.org, les liens vont vers Y.exemple.duckdns.org */
+  var DUCK = 'exemple.duckdns.org';
+  var PAS_DE_RENVOI = ['cloud'];   /* Nextcloud n'accepte que cloud.lan pour l'instant */
+  var surDuck = location.hostname === DUCK || location.hostname.slice(-(DUCK.length + 1)) === '.' + DUCK;
+  if (location.protocol === 'http:' || location.protocol === 'https:') {
+    Array.prototype.forEach.call(document.querySelectorAll('a[href^="http://"]'), function(a){
+      try {
+        var u = new URL(a.href);
+        if (!/\.lan$/.test(u.hostname)) return;
+        var nom = u.hostname.replace(/\.lan$/, '');
+        var hote = (surDuck && PAS_DE_RENVOI.indexOf(nom) < 0) ? nom + '.' + DUCK : u.host;
+        a.href = location.protocol + '//' + hote + u.pathname + u.search + u.hash;   /* garde aussi ?… et #… (raccourcis) */
+      } catch(e){}
+    });
+  }
+
+  /* ---------- ciel selon l'heure ---------- */
+  function ciel(){
+    var d = new Date(), n = d.getHours()*60 + d.getMinutes(), m = d.getMonth();
+    var lever = Math.round([8.4,8.0,7.3,7.4,6.6,6.1,6.3,7.0,7.8,8.5,8.0,8.5][m]*60), coucher = Math.round([17.6,18.4,19.2,21.1,21.8,22.2,22.0,21.3,20.3,19.3,17.6,17.3][m]*60);
+    var c = n < lever - 45 ? 'nuit' : n < lever + 75 ? 'aube' : n < coucher - 75 ? 'jour' : n < coucher + 45 ? 'crepuscule' : 'nuit';
+    document.documentElement.setAttribute('data-ciel', c);
+    var x, y;
+    if (c !== 'nuit') { var p = Math.min(1, Math.max(0, (n - (lever-30)) / ((coucher+30) - (lever-30)))); x = 8 + 84*p; y = 62 - 48*Math.sin(Math.PI*p); }
+    else { var t = n >= coucher ? n - coucher : n + 1440 - coucher, q = Math.min(1, t / (1440 - (coucher - lever))); x = 10 + 80*q; y = 60 - 42*Math.sin(Math.PI*q); }
+    $('#orb').style.setProperty('--ox', x.toFixed(1)); $('#orb').style.setProperty('--oy', y.toFixed(1));
+  }
+
+  /* ---------- services ---------- */
+  function set(el, v){
+    var mode = el.getAttribute('data-mode');
+    var s = v === true ? 'ok' : v === false ? (mode === 'demande' ? 'idle' : 'off') : '?';
+    el.setAttribute('data-s', s);
+    var st = el.querySelector('.stat');
+    if (st) st.textContent = s === 'ok' ? 'en ligne' : s === 'off' ? 'hors ligne' : s === 'idle' ? 'éteint' : 'inconnu';
+  }
+  function tourPuce(on){
+    var p = $('#p-tour');
+    p.setAttribute('data-s', on === null ? '?' : on ? 'ok' : 'off');
+    p.lastChild.textContent = on === null ? 'Tour : inconnue' : on ? 'Tour : allumée' : 'Tour : éteinte ou injoignable';
+    $('#tour-btn').disabled = (on === true);
+    $('#tour-off').disabled = (on !== true);
+    var m = $('#tour-msg');
+    if (on === true && m.getAttribute('data-k') === 'allumer') { m.textContent = ''; m.removeAttribute('data-k'); }
+  }
+  var dlgOn = $('#dlg-on');
+  function allumerTour(){
+    var b = $('#tour-btn'); b.disabled = true;
+    fetch('api/tour/allumer', {method:'POST', headers:{'X-Homelab':'1'}})
+      .then(function(r){ return r.json().then(function(j){ return {ok:r.ok, j:j}; }); })
+      .then(function(x){ var m = $('#tour-msg'); m.setAttribute('data-k', 'allumer'); m.textContent = x.ok ? 'Signal envoyé : la tour démarre (1 à 2 minutes).' : (x.j.erreur || 'Échec de l\'envoi'); })
+      .catch(function(){ $('#tour-msg').textContent = 'Le service homelab-api ne répond pas.'; })
+      .then(function(){ setTimeout(function(){ b.disabled = false; }, 15000); });
+  }
+  $('#tour-btn').addEventListener('click', function(){
+    if (this.disabled) return;
+    if (dlgOn.showModal) dlgOn.showModal();
+    else if (window.confirm('Allumer la tour maintenant ?')) allumerTour();
+  });
+  $('#dlg-on-non').addEventListener('click', function(){ dlgOn.close(); });
+  $('#dlg-on-oui').addEventListener('click', function(){ dlgOn.close(); allumerTour(); });
+  var dlgOff = $('#dlg-off');
+  function eteindreTour(){
+    var b = $('#tour-off'), m = $('#tour-msg');
+    b.disabled = true; m.removeAttribute('data-k'); m.textContent = 'Demande d\'extinction…';
+    fetch('api/tour/eteindre', {method:'POST', headers:{'X-Homelab':'1'}})
+      .then(function(r){ return r.json().then(function(j){ return {ok:r.ok, j:j}; }); })
+      .then(function(x){
+        m.textContent = x.ok ? 'La tour s\'éteint dans 30 secondes.' : (x.j.erreur || 'Échec de l\'extinction');
+        if (!x.ok) b.disabled = false;
+      })
+      .catch(function(){ m.textContent = 'Le service homelab-api ne répond pas.'; b.disabled = false; });
+  }
+  $('#tour-off').addEventListener('click', function(){
+    if (this.disabled) return;
+    if (dlgOff.showModal) dlgOff.showModal();
+    else if (window.confirm('Éteindre la tour maintenant ?')) eteindreTour();
+  });
+  $('#dlg-off-non').addEventListener('click', function(){ dlgOff.close(); });
+  $('#dlg-off-oui').addEventListener('click', function(){ dlgOff.close(); eteindreTour(); });
+  function verifier(){
+    fetch('etat.json?' + Date.now(), {cache:'no-store'})
+      .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+      .then(function(j){
+        if ((Date.now()/1000 - j.maj) > 240) throw 0;
+        var total = 0, bons = 0, off = 0;
+        rows.forEach(function(el){
+          var v = j.services[el.getAttribute('data-id')];
+          set(el, v);
+          if (el.classList.contains('row') && el.getAttribute('data-mode') !== 'demande'){ total++; if (v === true) bons++; else off++; }
+        });
+        $('#maj').textContent = 'Dernière vérification : ' + new Date(j.maj*1000).toLocaleTimeString('fr-FR');
+        tourPuce(j.tour === undefined ? null : !!j.tour);
+      })
+      .catch(function(){
+        rows.forEach(function(el){ set(el, null); });
+        tourPuce(null);
+      });
+  }
+
+  /* ---------- le portable ---------- */
+  function mesure(id, valeur, unite, pct, niveau, detail){
+    var m = $(id);
+    m.querySelector('.v').innerHTML = '';
+    m.querySelector('.v').appendChild(document.createTextNode(valeur));
+    if (unite) { var s = document.createElement('small'); s.textContent = unite; m.querySelector('.v').appendChild(s); }
+    m.querySelector('.ring .val').style.strokeDashoffset = (97.4 * (1 - Math.max(0, Math.min(100, pct || 0))/100)).toFixed(1);
+    m.setAttribute('data-n', niveau || 'ok');
+    m.querySelector('.d').textContent = detail || '';
+  }
+  function duree(s){
+    var j = Math.floor(s/86400), h = Math.floor(s%86400/3600), mi = Math.floor(s%3600/60);
+    return (j ? j + ' j ' : '') + (h || j ? h + ' h ' : '') + mi + ' min';
+  }
+  function gb(mo){ return (mo/1024).toFixed(1).replace('.', ',') + ' Go'; }
+  function systeme(){
+    fetch('api/systeme', {cache:'no-store'})
+      .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+      .then(function(j){
+        mesure('#m-cpu', j.cpu === null ? '…' : Math.round(j.cpu), '%', j.cpu, j.cpu >= 90 ? 'bad' : j.cpu >= 70 ? 'warn' : 'ok', 'Charge ' + j.charge.map(function(x){return x.toFixed(2)}).join(' · ') + ', ' + j.coeurs + ' cœurs');
+        mesure('#m-ram', Math.round(j.ram.pct), '%', j.ram.pct, j.ram.pct >= 85 ? 'bad' : j.ram.pct >= 70 ? 'warn' : 'ok', gb(j.ram.utilise_mo) + ' sur ' + gb(j.ram.total_mo) + (j.ram.swap_mo > 50 ? ', swap ' + j.ram.swap_mo + ' Mo' : ''));
+        mesure('#m-disk', Math.round(j.disque.pct), '%', j.disque.pct, j.disque.pct >= 90 ? 'bad' : j.disque.pct >= 80 ? 'warn' : 'ok', Math.round(j.disque.libre_go) + ' Go libres sur ' + j.disque.total_go + ' Go');
+        if (j.temp === null) mesure('#m-temp', '?', '', 0, 'ok', 'Capteur introuvable');
+        else mesure('#m-temp', Math.round(j.temp), '°C', (j.temp - 20) / 80 * 100, j.temp >= 85 ? 'bad' : j.temp >= 75 ? 'warn' : 'ok', j.temp >= 85 ? 'Trop chaud, vérifie la ventilation' : 'Alerte Beszel à 85 °C');
+        if (!j.batterie) mesure('#m-bat', '—', '', 0, 'ok', 'Pas de batterie');
+        else mesure('#m-bat', j.batterie.pct, '%', j.batterie.pct, j.batterie.etat === 'Discharging' ? (j.batterie.pct < 30 ? 'bad' : 'warn') : 'ok', j.batterie.etat === 'Discharging' ? 'Sur batterie : coupure de courant ?' : j.batterie.etat === 'Charging' ? 'Sur secteur, en charge' : 'Sur secteur');
+        if (!j.conteneurs) mesure('#m-dock', '?', '', 0, 'ok', 'Docker ne répond pas');
+        else {
+          var c = j.conteneurs, ar = c.arretes || 0, vo = c.services_eteints !== undefined ? c.services_eteints : (c.eteints || 0);
+          var txt = ar ? ar + ' arrêté' + (ar > 1 ? 's' : '') + ' sans raison' : 'Aucun arrêté anormal';
+          if (vo) txt += ' · ' + vo + ' service' + (vo > 1 ? 's' : '') + ' éteint' + (vo > 1 ? 's' : '') + ' par toi';   /* des services, pas des conteneurs */
+          mesure('#m-dock', c.actifs, 'actifs', 100, ar ? 'warn' : 'ok', txt);
+        }
+        $('#up').textContent = 'allumé depuis ' + duree(j.uptime_s);
+        var p = $('#p-sys'); p.setAttribute('data-s','ok'); p.lastChild.textContent = 'Mesures en direct';
+      })
+      .catch(function(){
+        $('#up').textContent = '';
+        var p = $('#p-sys'); p.setAttribute('data-s','off'); p.lastChild.textContent = 'Mesures indisponibles (service homelab-api ou route Caddy /api)';
+      });
+  }
+
+  /* ---------- appareils (Home Assistant) ---------- */
+  var NS = 'http://www.w3.org/2000/svg';
+  var ICONES = {light:'d-light', switch:'d-switch', sensor:'d-sensor', climate:'d-sensor', cover:'d-cover', fan:'d-fan'};
+  var ISO = /^\d{4}-\d\d-\d\dT\d\d:\d\d/;
+  function lisible(v){                        /* une date technique devient « Demain 07:55 » */
+    if (typeof v !== 'string' || !ISO.test(v)) return v;
+    var d = new Date(v); if (isNaN(d)) return v;
+    var jour0 = new Date(); jour0.setHours(0,0,0,0);
+    var ecart = Math.round((new Date(d).setHours(0,0,0,0) - jour0) / 86400000);
+    var hh = d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    return (ecart === 0 ? 'Aujourd\u2019hui ' : ecart === 1 ? 'Demain ' : ecart === -1 ? 'Hier ' : d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) + ' ') + hh;
+  }
+  function carte(a){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'dev'; b.setAttribute('data-id', a.id);
+    var actif = a.etat === 'on' || a.etat === 'open' || a.etat === 'opening';
+    var coupe = a.etat === 'unavailable' || a.etat === 'unknown' || a.etat === 'absent';
+    b.setAttribute('data-on', actif ? '1' : '0');
+    if (!a.bascule) { b.setAttribute('data-ro','1'); b.tabIndex = -1; b.setAttribute('aria-disabled','true'); }
+    if (coupe) b.setAttribute('data-off','1');
+    var svg = document.createElementNS(NS,'svg'), use = document.createElementNS(NS,'use');
+    svg.setAttribute('aria-hidden','true');
+    var horodatage = typeof a.valeur === 'string' && ISO.test(a.valeur);
+    use.setAttribute('href', '#' + (horodatage ? 'd-clock' : (ICONES[a.type] || 'd-other')));
+    svg.appendChild(use); b.appendChild(svg);
+    var nom = document.createElement('b'); nom.textContent = a.nom; b.appendChild(nom);
+    var sm = document.createElement('small'); sm.textContent = a.piece; b.appendChild(sm);
+    var st = document.createElement('span');
+    if (a.valeur !== undefined && a.valeur !== null && a.valeur !== '') { st.className = 'val'; st.textContent = lisible(a.valeur) + (a.unite ? ' ' + a.unite : ''); }
+    else { st.className = 'etat-d'; st.textContent = coupe ? 'Indisponible' : actif ? (a.type === 'cover' ? 'Ouvert' : 'Allumé') : (a.type === 'cover' ? 'Fermé' : 'Éteint'); }
+    b.appendChild(st);
+    var sw = document.createElement('i'); sw.className = 'interr'; sw.setAttribute('aria-hidden','true'); b.appendChild(sw);   /* interrupteur dessiné (caché pour les capteurs) */
+    if (a.bascule && !coupe) b.setAttribute('aria-label', a.nom + ', ' + st.textContent + '. Appuyer pour changer.');
+    return b;
+  }
+  function afficherAppareils(liste){
+    var box = $('#devs'); box.textContent = '';
+    liste.forEach(function(a){ box.appendChild(carte(a)); });
+    $('#t-appareils').hidden = liste.length === 0;
+  }
+  function chargerAppareils(){
+    fetch('api/appareils', {cache:'no-store'})
+      .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+      .then(function(j){ afficherAppareils(j.ok ? j.appareils : []); })
+      .catch(function(){ afficherAppareils([]); });
+  }
+  $('#devs').addEventListener('click', function(e){
+    var b = e.target.closest('.dev'); if (!b || b.getAttribute('data-ro') === '1') return;
+    b.style.opacity = '.6';
+    fetch('api/appareil', {method:'POST', headers:{'X-Homelab':'1','Content-Type':'application/json'}, body:JSON.stringify({id:b.getAttribute('data-id')})})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ if (j.ok) afficherAppareils(j.appareils); else b.style.opacity = ''; })
+      .catch(function(){ b.style.opacity = ''; });
+  });
+
+  /* ---------- services (interrupteurs, confirmation à chaque fois) ---------- */
+  var svcListe = [], svcCible = null, svcMinuterie = null, dlgSvc = $('#dlg-svc'), svcSuivi = 0, svcAvant = '';
+  var SVC_TXT = {marche:'En marche', eteint:'Éteint (par toi)', tombe:'Tombé', inconnu:'Docker ne répond pas'};
+  function ramTexte(s){                          /* mémoire utilisée par tous les conteneurs du service */
+    if (s.ram_mo === null || s.ram_mo === undefined || s.etat === 'eteint' || !s.ram_mo) return '';
+    return 'RAM : ' + (s.ram_mo < 1024 ? s.ram_mo + ' Mo' : (s.ram_mo / 1024).toFixed(1).replace('.', ',') + ' Go');
+  }
+  function carteSvc(s){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'dev svc'; b.setAttribute('data-id', s.id);
+    var cours = s.etat === 'en_cours';
+    b.setAttribute('data-on', (s.etat === 'marche' || (cours && s.action === 'allumer')) ? '1' : '0');
+    if (s.etat === 'tombe') b.setAttribute('data-panne', '1');
+    if (cours) { b.setAttribute('data-cours', '1'); b.setAttribute('aria-disabled', 'true'); }
+    if (s.etat === 'inconnu') b.setAttribute('data-off', '1');
+    var svg = document.createElementNS(NS,'svg'), use = document.createElementNS(NS,'use');
+    svg.setAttribute('aria-hidden','true'); use.setAttribute('href', '#b-power'); svg.appendChild(use); b.appendChild(svg);
+    var nom = document.createElement('b'); nom.textContent = s.nom; b.appendChild(nom);
+    var sm = document.createElement('small'); sm.textContent = s.erreur || ramTexte(s); b.appendChild(sm);
+    var st = document.createElement('span'); st.className = 'etat-d';
+    st.textContent = cours ? (s.action === 'eteindre' ? 'Extinction…' : 'Démarrage…') : (SVC_TXT[s.etat] || s.etat);
+    b.appendChild(st);
+    var sw = document.createElement('i'); sw.className = 'interr'; sw.setAttribute('aria-hidden','true'); b.appendChild(sw);
+    b.setAttribute('aria-label', s.nom + ', ' + st.textContent + '. Appuyer pour ' + (s.etat === 'marche' ? 'éteindre.' : 'allumer.'));
+    return b;
+  }
+  function bilanServices(liste){
+    /* total fixe (tous les services de la liste) ; seuls les « tombés » mettent le badge en rouge */
+    var bons = liste.filter(function(s){ return s.etat === 'marche' || s.etat === 'en_cours'; }).length;
+    var pannes = liste.filter(function(s){ return s.etat === 'tombe' || s.etat === 'inconnu'; }).length;
+    var eteints = liste.filter(function(s){ return s.etat === 'eteint'; }).length;
+    $('#n').textContent = bons + ' / ' + liste.length;
+    $('#n-txt').textContent = (pannes ? pannes + ' en panne' : 'services en marche') + (eteints ? ' · ' + eteints + ' éteint' + (eteints > 1 ? 's' : '') + ' par toi' : '');
+    $('#bilan').setAttribute('data-s', pannes ? 'warn' : 'ok');
+  }
+  function afficherServices(liste){
+    svcListe = liste;
+    bilanServices(liste);
+    var box = $('#svcs'); box.textContent = '';
+    var groupes = [];
+    liste.forEach(function(s){ if (groupes.indexOf(s.groupe) < 0) groupes.push(s.groupe); });
+    groupes.forEach(function(g){
+      var h = document.createElement('h3'); h.className = 'svc-g'; h.textContent = g; box.appendChild(h);
+      var grille = document.createElement('div'); grille.className = 'devs';
+      liste.forEach(function(s){ if (s.groupe === g) grille.appendChild(carteSvc(s)); });
+      box.appendChild(grille);
+    });
+  }
+  function chargerServices(){
+    clearTimeout(svcMinuterie);
+    fetch('api/services', {cache:'no-store'})
+      .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+      .then(function(j){
+        afficherServices(j.services);
+        var cours = j.services.some(function(s){ return s.etat === 'en_cours'; });
+        var empreinte = j.services.map(function(s){ return s.id + s.etat; }).join();
+        var stable = !cours && empreinte === svcAvant;
+        svcAvant = empreinte;
+        var suivi = Date.now() < svcSuivi || (svcSuivi && !stable);      /* 30 s après une action, puis jusqu'à stabilité */
+        if (svcSuivi && !suivi) svcSuivi = 0;
+        if (suivi) { verifier(); systeme(); }                             /* le reste de la page suit aussi */
+        svcMinuterie = setTimeout(chargerServices, (cours || suivi) ? 2000 : 15000);
+      })
+      .catch(function(){
+        $('#svcs').innerHTML = '<p class="svc-msg">Services indisponibles : le service homelab-api ne répond pas.</p>';
+        $('#n').textContent = '?';
+        $('#n-txt').textContent = 'état indisponible : le service homelab-api tourne-t-il ?';
+        $('#bilan').setAttribute('data-s','?');
+        svcMinuterie = setTimeout(chargerServices, 15000);
+      });
+  }
+  function piloterSvc(s, action){
+    var m = $('#svc-msg');
+    m.textContent = (action === 'eteindre' ? 'Extinction de ' : 'Démarrage de ') + s.nom + '…';
+    fetch('api/service', {method:'POST', headers:{'X-Homelab':'1','Content-Type':'application/json'}, body:JSON.stringify({id:s.id, action:action})})
+      .then(function(r){ return r.json().then(function(j){ return {ok:r.ok, j:j}; }); })
+      .then(function(x){ m.textContent = x.ok ? '' : (x.j.erreur || 'Échec de la demande'); svcSuivi = Date.now() + 30000; chargerServices(); })
+      .catch(function(){ m.textContent = 'Le service homelab-api ne répond pas.'; });
+  }
+  $('#svcs').addEventListener('click', function(e){
+    var b = e.target.closest('.svc'); if (!b || b.getAttribute('data-cours') === '1' || b.getAttribute('data-off') === '1') return;
+    var s = svcListe.filter(function(x){ return x.id === b.getAttribute('data-id'); })[0]; if (!s) return;
+    var action = s.etat === 'marche' ? 'eteindre' : 'allumer';
+    svcCible = {s:s, action:action};
+    var q = action === 'eteindre' ? 'Éteindre ' + s.nom + ' maintenant ?' : (s.etat === 'tombe' ? 'Relancer ' : 'Allumer ') + s.nom + ' maintenant ?';
+    var d = action === 'eteindre' ? 'Il reste éteint, même après un redémarrage du portable, jusqu’à ce que tu le rallumes ici. Pas d’alerte par mail pendant ce temps.'
+                                  : 'Il démarre en quelques secondes. Les alertes par mail reprennent pour ce service.';
+    if (s.note) d += ' ' + s.note;
+    $('#dlg-svc-q').textContent = q; $('#dlg-svc-d').textContent = d;
+    $('#dlg-svc-oui').className = 'btn ' + (action === 'eteindre' ? 'danger' : 'primary');
+    if (dlgSvc.showModal) dlgSvc.showModal();
+    else if (window.confirm(q)) piloterSvc(s, action);
+  });
+  $('#dlg-svc-non').addEventListener('click', function(){ dlgSvc.close(); svcCible = null; });
+  $('#dlg-svc-oui').addEventListener('click', function(){ dlgSvc.close(); if (svcCible) piloterSvc(svcCible.s, svcCible.action); svcCible = null; });
+
+  /* ---------- sauvegardes ---------- */
+  var armee = null, enCours = false, ouverts = {}, journaux = {};
+  var btn = $('#sauv-btn');
+  function quand(t){ return new Date(t*1000).toLocaleString('fr-FR',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'}); }
+  function court(t){ return new Date(t*1000).toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}); }
+  function ilya(t){
+    var s = Date.now()/1000 - t;
+    if (s < 3600) return 'il y a ' + Math.max(1, Math.round(s/60)) + ' min';
+    if (s < 86400) return 'il y a ' + Math.round(s/3600) + ' h';
+    return 'il y a ' + Math.round(s/86400) + ' j';
+  }
+  function octets(n){
+    if (n === null || n === undefined) return '—';
+    if (n < 1048576) return Math.max(1, Math.round(n/1024)) + ' Ko';
+    if (n < 1073741824) return Math.round(n/1048576) + ' Mo';
+    return (n/1073741824).toFixed(1).replace('.', ',') + ' Go';
+  }
+  function dureeCourte(s){ if (s === null || s === undefined) return '—'; return s < 90 ? Math.round(s) + ' s' : Math.round(s/60) + ' min'; }
+  function vide(z, texte){ z.textContent = ''; var v = document.createElement('div'); v.className = 'vide'; v.textContent = texte; z.appendChild(v); }
+  function cellule(tr, txt, cls){ var td = document.createElement('td'); td.textContent = txt; if (cls) td.className = cls; tr.appendChild(td); return td; }
+
+  function instantanes(h){
+    var z = $('#hist-zone');
+    if (!h || !h.length) return vide(z, 'La liste des instantanés apparaîtra après la prochaine sauvegarde réussie.');
+    z.textContent = '';
+    var t = document.createElement('table');
+    t.innerHTML = '<thead><tr><th>Date</th><th>Instantané</th><th class="r">Ajouté</th><th class="r">Fichiers</th><th class="r">Durée</th></tr></thead>';
+    var tb = document.createElement('tbody');
+    h.slice(0, 15).forEach(function(x){
+      var tr = document.createElement('tr');
+      cellule(tr, court(new Date(x.date).getTime()/1000)); cellule(tr, x.id);
+      cellule(tr, octets(x.ajoute), 'r'); cellule(tr, x.fichiers === null || x.fichiers === undefined ? '—' : x.fichiers, 'r'); cellule(tr, dureeCourte(x.duree_s), 'r');
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb); z.appendChild(t);
+  }
+
+  function chargerJournal(id, pre){
+    if (journaux[id] !== undefined) { pre.textContent = journaux[id]; return; }
+    pre.textContent = 'Chargement du journal…';
+    fetch('api/sauvegarde/journal?id=' + encodeURIComponent(id), {cache:'no-store'})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ journaux[id] = j.journal || j.erreur || '(vide)'; pre.textContent = journaux[id]; })
+      .catch(function(){ pre.textContent = 'Journal indisponible.'; });
+  }
+  /* raison d'une exécution sautée ou ratée, en une phrase, tirée du message écrit par le suivi */
+  function raison(texte, echec){
+    var lignes = String(texte || '').split('\n').filter(function(l){
+      return l.trim() && !/^\S+\s+\S+\s+systemd\[\d+\]:/.test(l) && !/^-- No entries --$/.test(l.trim());
+    }).map(function(l){ return l.replace(/^\d{4}-\d\d-\d\dT\S+\s+\S+\s+[^\s:]+:\s*/, '').trim(); })
+      .filter(function(l){ return l && !/^Lancée à la main/.test(l); });
+    var tout = lignes.join(' ');
+    var m = tout.match(/déjà réussie le (\d\d\/\d\d à \d\d:\d\d)/i);
+    if (m) return 'Déjà réussie le ' + m[1] + ', rien à faire';
+    if (/tour éteinte|partage fermé/i.test(tout)) return 'Tour éteinte, sauvegarde impossible';
+    if (/partage de la tour indisponible/i.test(tout)) return 'Partage de la tour indisponible (tour allumée ?)';
+    if (!lignes.length) return 'Raison inconnue : aucun message dans le journal';
+    if (echec) {   /* échec : la dernière ligne donne la cause, sauf le message générique « Sauvegarde échouée (code N) » */
+      var precises = lignes.filter(function(x){ return !/^Sauvegarde échouée \(code \d+\)$/.test(x); });
+      if (precises.length) lignes = precises;
+    }
+    var l = echec ? lignes[lignes.length - 1] : lignes[0];
+    return l.length > 90 ? l.slice(0, 89) + '…' : l;
+  }
+  function afficherRaison(id, el, echec){
+    if (journaux[id] !== undefined) { el.textContent = raison(journaux[id], echec); return; }
+    el.textContent = 'Raison : chargement…';
+    fetch('api/sauvegarde/journal?id=' + encodeURIComponent(id), {cache:'no-store'})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ if (j.journal !== undefined) journaux[id] = j.journal; el.textContent = j.journal !== undefined ? raison(j.journal, echec) : 'Raison indisponible'; })
+      .catch(function(){ el.textContent = 'Raison indisponible'; });
+  }
+  function executions(liste){
+    var z = $('#exec-zone');
+    if (!liste || !liste.length) return vide(z, 'Aucune exécution enregistrée. Chaque sauvegarde, réussie ou ratée, apparaîtra ici avec son journal.');
+    z.textContent = '';
+    var t = document.createElement('table');
+    t.innerHTML = '<thead><tr><th>Début</th><th>Lancement</th><th>Résultat</th><th class="r">Durée</th><th class="r">Journal</th></tr></thead>';
+    var tb = document.createElement('tbody');
+    liste.slice(0, 20).forEach(function(x){
+      var tr = document.createElement('tr');
+      cellule(tr, court(x.debut)); cellule(tr, x.declencheur === 'manuel' ? 'À la main' : 'Planifié');
+      var td = document.createElement('td'), bd = document.createElement('span');
+      var saut = x.resultat === 'ignoree';   /* sautée : déjà faite récemment, rien n'a été sauvegardé */
+      bd.className = 'badge'; bd.setAttribute('data-r', saut ? 'idle' : x.reussi ? 'ok' : 'bad');
+      bd.textContent = saut ? 'Ignorée' : x.reussi ? 'Réussie' : 'Échec' + (x.code && x.code !== '0' ? ' (code ' + x.code + ')' : '');
+      td.appendChild(bd);
+      if (saut || x.reussi === false) { var rs = document.createElement('small'); rs.className = 'raison'; td.appendChild(rs); afficherRaison(x.id, rs, !saut); }
+      tr.appendChild(td);
+      cellule(tr, dureeCourte(x.duree_s), 'r');
+      var tj = document.createElement('td'); tj.className = 'r';
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'lien'; b.setAttribute('data-id', x.id);
+      b.setAttribute('aria-expanded', ouverts[x.id] ? 'true' : 'false'); b.textContent = ouverts[x.id] ? 'Masquer' : 'Voir';
+      tj.appendChild(b); tr.appendChild(tj); tb.appendChild(tr);
+      if (ouverts[x.id]) {
+        var r2 = document.createElement('tr'); r2.className = 'jr';
+        var c = document.createElement('td'); c.colSpan = 5;
+        var pre = document.createElement('pre'); pre.className = 'journal'; c.appendChild(pre); r2.appendChild(c); tb.appendChild(r2);
+        chargerJournal(x.id, pre);
+      }
+    });
+    t.appendChild(tb); z.appendChild(t);
+  }
+  $('#exec-zone').addEventListener('click', function(e){
+    var b = e.target.closest('button.lien'); if (!b) return;
+    var id = b.getAttribute('data-id'); ouverts[id] = !ouverts[id];
+    dernieresig = ''; executions(derniere);
+  });
+
+  function onglet(nom){
+    var e = nom === 'exec';
+    $('#o-exec').setAttribute('aria-selected', e); $('#o-inst').setAttribute('aria-selected', !e);
+    $('#exec-zone').hidden = !e; $('#hist-zone').hidden = e;
+  }
+  $('#o-exec').addEventListener('click', function(){ onglet('exec'); });
+  $('#o-inst').addEventListener('click', function(){ onglet('inst'); });
+
+  var derniere = [], dernieresig = '';
+  function direct(actif){
+    var box = $('#sauv-direct');
+    box.hidden = !actif; if (!actif) return;
+    fetch('api/sauvegarde/direct', {cache:'no-store'})
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        var pre = $('#sauv-direct-pre'); pre.textContent = j.journal || j.erreur || '';
+        pre.scrollTop = pre.scrollHeight;
+      })
+      .catch(function(){});
+  }
+  function sauvegarde(){
+    fetch('api/sauvegarde', {cache:'no-store'})
+      .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+      .then(function(j){
+        var h = $('#sauv-haut'), g = $('#sauv-gros'), p = $('#sauv-petit'), ech = $('#sauv-echec');
+        enCours = j.actif;
+        derniere = j.executions || [];
+        var reelles = derniere.filter(function(x){ return x.resultat !== 'ignoree'; });   /* les sautées ne comptent pas */
+        var der = reelles[0];
+        var suiv = j.prochaine ? 'Prochaine sauvegarde automatique : ' + quand(j.prochaine) + '.' : '';
+        if (j.actif) { h.setAttribute('data-s','run'); g.textContent = 'Sauvegarde en cours…'; p.textContent = 'Ça peut durer quelques minutes. Le journal défile ci-dessous.'; }
+        else if (der && der.reussi) { h.setAttribute('data-s','ok'); g.textContent = 'Dernière sauvegarde réussie ' + ilya(der.fin); p.textContent = suiv; }
+        else if (der) { h.setAttribute('data-s','bad'); g.textContent = 'La dernière sauvegarde a échoué ' + ilya(der.fin); p.textContent = 'Ouvre le journal ci-dessous pour voir la cause. ' + suiv; }
+        else if (derniere.length) { h.setAttribute('data-s','?'); g.textContent = 'Aucune vraie sauvegarde enregistrée'; p.textContent = 'Les dernières exécutions ont été sautées (sauvegarde déjà faite récemment). ' + suiv; }
+        else if (j.fin && j.resultat === 'success') { h.setAttribute('data-s','ok'); g.textContent = 'Dernière sauvegarde réussie ' + ilya(j.fin); p.textContent = suiv; }
+        else if (j.fin) { h.setAttribute('data-s','bad'); g.textContent = 'La dernière sauvegarde a échoué ' + ilya(j.fin); p.textContent = suiv; }
+        else { h.setAttribute('data-s','?'); g.textContent = 'Aucune sauvegarde enregistrée'; p.textContent = suiv; }
+        var echec = derniere.filter(function(x){ return x.reussi === false; })[0];
+        var depuis = echec && (!der || !der.reussi);
+        ech.hidden = !depuis;
+        if (depuis) ech.textContent = 'Dernier échec : ' + court(echec.debut) + (echec.code ? ', code ' + echec.code : '') + '. Cause probable : tour éteinte ou dossier réseau indisponible.';
+        if (!armee) { btn.disabled = j.actif; btn.textContent = j.actif ? 'En cours…' : 'Sauvegarder maintenant'; }
+        var sig = JSON.stringify([derniere, j.historique]);
+        if (sig !== dernieresig) { dernieresig = sig; executions(derniere); instantanes(j.historique); }
+        direct(j.actif);
+      })
+      .catch(function(){
+        $('#sauv-haut').setAttribute('data-s','?');
+        $('#sauv-gros').textContent = 'Sauvegardes indisponibles';
+        $('#sauv-petit').textContent = 'Le service homelab-api ou la route Caddy /api ne répond pas.';
+        btn.disabled = true;
+      });
+  }
+  btn.addEventListener('click', function(){
+    if (!armee) {
+      btn.setAttribute('data-c','1'); btn.textContent = 'Confirmer : lancer la sauvegarde';
+      armee = setTimeout(function(){ armee = null; btn.removeAttribute('data-c'); btn.textContent = 'Sauvegarder maintenant'; }, 6000);
+      return;
+    }
+    clearTimeout(armee); armee = null; btn.removeAttribute('data-c'); btn.disabled = true; btn.textContent = 'Lancement…';
+    fetch('api/sauvegarde', {method:'POST', headers:{'X-Homelab':'1'}})
+      .then(function(r){ return r.json().then(function(j){ return {ok:r.ok, j:j}; }); })
+      .then(function(x){
+        if (!x.ok) { $('#sauv-gros').textContent = x.j.erreur || 'Échec du lancement'; btn.disabled = false; btn.textContent = 'Sauvegarder maintenant'; return; }
+        setTimeout(sauvegarde, 1500);
+      })
+      .catch(function(){ btn.disabled = false; btn.textContent = 'Sauvegarder maintenant'; });
+  });
+
+  ciel(); verifier(); systeme(); sauvegarde(); chargerAppareils(); chargerServices();
+  setInterval(ciel, 60000);
+  setInterval(verifier, 30000);
+  setInterval(systeme, 5000);
+  setInterval(sauvegarde, 5000);
+  setInterval(chargerAppareils, 10000);
+})();
+</script>
+</body>
+</html>

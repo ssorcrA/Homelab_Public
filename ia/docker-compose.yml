@@ -1,0 +1,35 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: "no"
+    ports:
+      - "127.0.0.1:11434:11434"
+    environment:
+      OLLAMA_KEEP_ALIVE: 5m
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_LOADED_MODELS: "1"
+    volumes:
+      - ./ollama:/root/.ollama
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: "no"
+    depends_on:
+      - ollama
+    ports:
+      - "127.0.0.1:8088:8080"
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+      WEBUI_AUTH: "true"
+      ENABLE_SIGNUP: "false"
+    volumes:
+      - ./webui:/app/backend/data
+
+# Plage fixe : les plages Docker par défaut sont épuisées (172.17 à 172.31)
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 10.251.0.0/24
